@@ -32,7 +32,8 @@ COPY settings.env /settings.env
 RUN chmod +x /*.sh
 RUN crontab /crontab.txt
 
-USER valheim
+#USER valheim
+USER ${PUID}
 WORKDIR ${VALHEIM_DIR}
 
 HEALTHCHECK --interval=60s --timeout=10s --start-period=120s \
