@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
-source /settings.env
+
+# Load environment variables
+set -a
+. /settings.env
+set +a
 
 /install-steamcmd.sh
 /install-valheim.sh
