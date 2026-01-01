@@ -25,6 +25,7 @@ COPY install_valheim.sh /install_valheim.sh
 COPY install_modloader.sh /install_modloader.sh
 COPY install_bepinex.sh /install_bepinex.sh
 COPY entrypoint.sh /entrypoint.sh
+COPY start_server.sh /start_server.sh
 COPY idle_check.sh /idle_check.sh
 COPY crontab.txt /crontab.txt
 COPY settings.env /settings.env
