@@ -8,9 +8,10 @@ echo "======================================"
 
 case "$MOD_LOADER" in
     BepInEx)
-        echo "Installing BepInEx..."
-        wget -q $BEPINEX_URL -O /tmp/bepinex.zip
-        unzip -o /tmp/bepinex.zip -d ${VALHEIM_DIR}
+     #   echo "Installing BepInEx..."
+     #   wget -q $BEPINEX_URL -O /tmp/bepinex.zip
+     #   unzip -o /tmp/bepinex.zip -d ${VALHEIM_DIR}
+         install_bepinex.sh
         ;;
     ValheimPlus)
         echo "Installing ValheimPlus..."
