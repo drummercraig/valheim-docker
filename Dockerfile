@@ -9,8 +9,16 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p ${STEAMCMD_DIR} ${VALHEIM_DIR} /valheim-data
-RUN useradd -m -d /home/valheim -s /bin/bash valheim && \
-    chown -R valheim:valheim ${STEAMCMD_DIR} ${VALHEIM_DIR} /valheim-data /tmp
+# Ensure folder structure exists
+RUN mkdir -p /valheim-data/BepInEx/plugins /valheim-data/BepInEx/patchers /valheim-data/BepInEx/config
+RUN mkdir -p /valheim-data/worlds /valheim-data/backups
+
+# Apply initial permissions
+chown -R ${PUID}:${PGID} /valheim-data
+chmod -R 755 /valheim-data
+
+#RUN useradd -m -d /home/valheim -s /bin/bash valheim && \
+#    chown -R valheim:valheim ${STEAMCMD_DIR} ${VALHEIM_DIR} /valheim-data /tmp
 
 COPY install_steamcmd.sh /install_steamcmd.sh
 COPY install_valheim.sh /install_valheim.sh
