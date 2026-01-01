@@ -4,7 +4,7 @@ source /settings.env
 
 /install-steamcmd.sh
 /install-valheim.sh
-#/install-modloader.sh
+/install-modloader.sh
 
 service cron start
 
