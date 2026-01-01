@@ -6,9 +6,9 @@ set -a
 . /settings.env
 set +a
 
-/install-steamcmd.sh
-/install-valheim.sh
-/install-modloader.sh
+/install_steamcmd.sh
+/install_valheim.sh
+/install_modloader.sh
 
 service cron start
 
