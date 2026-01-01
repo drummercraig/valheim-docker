@@ -15,6 +15,7 @@ RUN useradd -m -d /home/valheim -s /bin/bash valheim && \
 COPY install_steamcmd.sh /install_steamcmd.sh
 COPY install_valheim.sh /install_valheim.sh
 COPY install_modloader.sh /install_modloader.sh
+COPY install_bepinex.sh /install_bepinex.sh
 COPY entrypoint.sh /entrypoint.sh
 COPY idle_check.sh /idle_check.sh
 COPY crontab.txt /crontab.txt
