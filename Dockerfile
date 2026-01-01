@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN mkdir -p ${STEAMCMD_DIR} ${VALHEIM_DIR} /valheim-data
 RUN useradd -m -d /home/valheim -s /bin/bash valheim && \
-    chown -R valheim:valheim ${STEAMCMD_DIR} ${VALHEIM_DIR} /valheim-data
+    chown -R valheim:valheim ${STEAMCMD_DIR} ${VALHEIM_DIR} /valheim-data /tmp
 
 COPY install_steamcmd.sh /install_steamcmd.sh
 COPY install_valheim.sh /install_valheim.sh
