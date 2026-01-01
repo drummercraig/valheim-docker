@@ -1,0 +1,17 @@
+services:
+  valheim:
+    build: .
+    image: drummercraig/valheim-server:latest
+    container_name: valheim-server
+    env_file:
+      - settings.env
+    volumes:
+      - ./valheim-data:/valheim-data
+    ports:
+      - "2456-2458:2456-2458/udp"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "valheim_server.x86_64"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
