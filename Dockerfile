@@ -14,8 +14,8 @@ RUN mkdir -p /valheim-data/BepInEx/plugins /valheim-data/BepInEx/patchers /valhe
 RUN mkdir -p /valheim-data/worlds /valheim-data/backups
 
 # Apply initial permissions
-chown -R ${PUID}:${PGID} /valheim-data
-chmod -R 755 /valheim-data
+RUN chown -R ${PUID}:${PGID} /valheim-data
+RUN chmod -R 755 /valheim-data
 
 #RUN useradd -m -d /home/valheim -s /bin/bash valheim && \
 #    chown -R valheim:valheim ${STEAMCMD_DIR} ${VALHEIM_DIR} /valheim-data /tmp
