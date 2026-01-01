@@ -6,7 +6,7 @@ services:
     env_file:
       - settings.env
     volumes:
-      - ./valheim-data:/valheim-data
+      - ./valheim-data:/opt/valheim   # Persist entire Valheim directory
     ports:
       - "2456-2458:2456-2458/udp"
     restart: unless-stopped

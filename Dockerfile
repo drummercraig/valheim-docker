@@ -30,6 +30,11 @@ COPY idle_check.sh /idle_check.sh
 COPY crontab.txt /crontab.txt
 COPY settings.env /settings.env
 
+EXPOSE 2456/udp 2457/udp 2456/tcp 2457/tcp
+
+# Set volume for persistent data
+VOLUME ["/valheim-data"]
+
 RUN chmod +x /*.sh
 RUN crontab /crontab.txt
 
