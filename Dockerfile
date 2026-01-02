@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir -p /opt/valheim /opt/steamcmd /valheim-data
 
 # Copy all scripts and settings.env into /opt
-COPY entrypoint.sh install_valheim.sh install_bepinex.sh install_valheimplus.sh backup.sh restart.sh build_start_cmd.sh start_server.sh settings.env ./
+COPY entrypoint.sh install_valheim.sh install_bepinex.sh install_valheimplus.sh backup.sh restart.sh build_start_cmd.sh settings.env ./
 
 # Make all scripts executable
 RUN chmod +x *.sh
