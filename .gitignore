@@ -1,0 +1,20 @@
+# Valheim server data directory
+valheim-data/
+
+# Docker volumes
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Environment files (if you add them)
+.env
+.env.local
