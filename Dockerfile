@@ -7,13 +7,13 @@ RUN apt-get update && apt-get install -y wget unzip curl lib32gcc-s1 && rm -rf /
 # Create valheim user and directories
 RUN useradd -m valheim && mkdir -p /opt/valheim && chown valheim:valheim /opt/valheim
 
-# Copy installation scripts and entrypoint
+# Copy scripts and entrypoint BEFORE switching user
 COPY install_steamcmd.sh /tmp/install_steamcmd.sh
 COPY install_valheim.sh /tmp/install_valheim.sh
-COPY entrypoint.sh /opt/valheim/entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
 
 # Make scripts executable
-RUN chmod +x /tmp/install_steamcmd.sh /tmp/install_valheim.sh /opt/valheim/entrypoint.sh
+RUN chmod +x /tmp/install_steamcmd.sh /tmp/install_valheim.sh /entrypoint.sh
 
 # Switch to valheim user AFTER permissions are set
 USER valheim
@@ -35,4 +35,4 @@ ENV SERVER_NAME="MyValheimServer" \
     SERVER_PUBLIC="1"
 
 # Use entrypoint to fix permissions and start server
-ENTRYPOINT ["/opt/valheim/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]

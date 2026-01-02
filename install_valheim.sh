@@ -8,7 +8,7 @@ COUNTER=0
 
 while [ $COUNTER -lt $MAX_RETRIES ]; do
     echo "Attempt $(($COUNTER+1)) to install Valheim server..."
-    if ~/steamcmd/steamcmd.sh +login anonymous +force_install_dir /opt/valheim +app_update 896660 validate +quit; then
+    if ~/steamcmd/steamcmd.sh +force_install_dir +login anonymous /opt/valheim +app_update 896660 validate +quit; then
         echo "Valheim server installed successfully."
         break
     else
