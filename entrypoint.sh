@@ -25,7 +25,9 @@ echo "$RESTART_CRON root /restart.sh" >> /etc/crontab
 service cron start
 
 # Prepare persistent directories
-mkdir -p "$PLUGIN_DEST" "$PATCHER_DEST" "$CONFIG_DEST" "$WORLD_SRC" "$WORLD_BACKUP"
+mkdir -p "$PLUGIN_SRC" "$PATCHER_SRC" "$CONFIG_SRC"
+mkdir -p "$PLUGIN_DEST" "$PATCHER_DEST" "$CONFIG_DEST"
+mkdir -p "$WORLD_SRC" "$WORLD_BACKUP"
 
 # Sync persistent data using rsync
 rsync -a "$PLUGIN_SRC/" "$PLUGIN_DEST/" || true
