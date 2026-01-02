@@ -2,7 +2,7 @@
 FROM ubuntu:24.04
 
 # Install dependencies
-RUN apt-get update && apt-get install -y wget unzip curl rsync lib32gcc-s1 supervisor && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y wget unzip curl rsync lib32gcc-s1 tini && apt-get clean supervisor && rm -rf /var/lib/apt/lists/*
 
 # Create valheim user and directories
 RUN useradd -m valheim && mkdir -p /opt/valheim /opt/cache /opt/config /opt/backups
@@ -25,6 +25,8 @@ ENV SERVER_NAME="MyValheimServer" \
     WORLD_NAME="Dedicated" \
     SERVER_PASS="secret" \
     SERVER_PUBLIC="1"
+    
+# Use Tini as entrypoint
+ENTRYPOINT ["/usr/bin/tini", "--"]
 
-# Use bootstrap script as entrypoint
-ENTRYPOINT ["/bootstrap.sh"]
+CMD ["/bootstrap.sh"]

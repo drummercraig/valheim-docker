@@ -56,8 +56,8 @@ if [ ! -f "$VALHEIM_DIR/valheim_server.x86_64" ]; then
         MAX_ATTEMPTS=5
         while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
             echo "Attempt $ATTEMPT of $MAX_ATTEMPTS..."
-            if steamcmd +login anonymous \
-                        +force_install_dir "$VALHEIM_DIR" \
+            if steamcmd +force_install_dir "$VALHEIM_DIR" \
+                        +login anonymous \
                         +app_update 896660 validate \
                         +quit; then
                 echo "Valheim server installed successfully."
