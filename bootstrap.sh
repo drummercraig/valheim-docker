@@ -44,18 +44,36 @@ else
     echo "SteamCMD already installed."
 fi
 
-# --- Valheim Server Installation ---
+# --- Valheim Server Installation with Retry ---
 if [ ! -f "$VALHEIM_DIR/valheim_server.x86_64" ]; then
     echo "Valheim server not found or incomplete. Checking cache..."
     if [ -f "$VALHEIM_CACHE/valheim_server.x86_64" ]; then
         echo "Using cached Valheim server files..."
         cp -r "$VALHEIM_CACHE" "$VALHEIM_DIR"
     else
-        echo "Downloading Valheim server via SteamCMD..."
-        steamcmd +force_install_dir "$VALHEIM_DIR" \
-                 +login anonymous \
-                 +app_update 896660 validate \
-                 +quit
+        echo "Downloading Valheim server via SteamCMD with retry..."
+        ATTEMPT=1
+        MAX_ATTEMPTS=5
+        while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Attempt $ATTEMPT of $MAX_ATTEMPTS..."
+            if steamcmd +login anonymous \
+                        +force_install_dir "$VALHEIM_DIR" \
+                        +app_update 896660 validate \
+                        +quit; then
+                echo "Valheim server installed successfully."
+                break
+            else
+                echo "Valheim install failed. Retrying in 5 seconds..."
+                sleep 5
+            fi
+            ATTEMPT=$((ATTEMPT + 1))
+        done
+
+        if [ ! -f "$VALHEIM_DIR/valheim_server.x86_64" ]; then
+            echo "ERROR: Valheim server installation failed after $MAX_ATTEMPTS attempts."
+            exit 1
+        fi
+
         echo "Caching Valheim server files..."
         cp -r "$VALHEIM_DIR" "$VALHEIM_CACHE"
     fi
