@@ -24,5 +24,5 @@ if [ $COUNTER -eq $MAX_RETRIES ]; then
 fi
 
 # Ensure valheim user owns Valheim directory
-chown -R valheim:valheim /opt/valheim
-chmod -R 755 /opt/valheim
+#chown -R valheim:valheim /opt/valheim
+#chmod -R 755 /opt/valheim
