@@ -14,5 +14,3 @@ else
 fi
 
 tar -xzvf "$STEAMCMD_ARCHIVE" -C ~/steamcmd
-#chown -R valheim:valheim ~/steamcmd || true
-#chmod -R 755 ~/steamcmd || true

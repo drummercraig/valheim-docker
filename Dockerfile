@@ -5,18 +5,17 @@ FROM ubuntu:24.04
 RUN apt-get update && apt-get install -y wget unzip curl rsync lib32gcc-s1 supervisor && rm -rf /var/lib/apt/lists/*
 
 # Create valheim user and directories
-RUN useradd -m valheim && mkdir -p /opt/valheim && mkdir -p /opt/cache && mkdir -p /opt/config && mkdir -p /opt/backups
+RUN useradd -m valheim && mkdir -p /opt/valheim /opt/cache /opt/config /opt/backups
 
-# Copy scripts and bootstrap
+# Copy scripts and bootstrap BEFORE switching user
 COPY install_steamcmd.sh /tmp/install_steamcmd.sh
-COPY install_valheim.sh /tmp/install_valheim.sh
 COPY bootstrap.sh /bootstrap.sh
 
 # Make scripts executable
-RUN chmod +x /tmp/install_steamcmd.sh /tmp/install_valheim.sh /bootstrap.sh
+RUN chmod +x /tmp/install_steamcmd.sh /bootstrap.sh
 
-# Install SteamCMD and Valheim as root during build
-RUN /tmp/install_steamcmd.sh && /tmp/install_valheim.sh
+# Install SteamCMD during build (Valheim will install at runtime)
+RUN /tmp/install_steamcmd.sh
 
 # Expose Valheim ports
 EXPOSE 2456-2458/udp
