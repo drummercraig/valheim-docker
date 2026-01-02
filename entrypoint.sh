@@ -29,6 +29,9 @@ mkdir -p "$PLUGIN_SRC" "$PATCHER_SRC" "$CONFIG_SRC"
 mkdir -p "$PLUGIN_DEST" "$PATCHER_DEST" "$CONFIG_DEST"
 mkdir -p "$WORLD_SRC" "$WORLD_BACKUP"
 
+chown -R ${PUID}:${PGID} /valheim-data
+chmod -R u+rwX,go+rX /valheim-data
+
 # Sync persistent data using rsync
 rsync -a "$PLUGIN_SRC/" "$PLUGIN_DEST/" || true
 rsync -a "$PATCHER_SRC/" "$PATCHER_DEST/" || true

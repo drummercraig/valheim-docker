@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Create directories for Valheim and SteamCMD
-RUN mkdir -p /opt/valheim /opt/steamcmd /valheim-data
+RUN mkdir -p /opt/valheim /opt/steamcmd
 
 # Copy all scripts and settings.env into /opt
 COPY entrypoint.sh install_valheim.sh install_bepinex.sh install_valheimplus.sh backup.sh restart.sh build_start_cmd.sh settings.env ./
