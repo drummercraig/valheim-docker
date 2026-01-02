@@ -86,6 +86,7 @@ echo "Bootstrap complete!"
 # Drop privileges and start server
 echo "Starting Valheim server as valheim user..."
 exec su -s /bin/bash valheim -c "/opt/valheim/valheim_server.x86_64 \
+    -nographics -batchmode \
     -name \"$SERVER_NAME\" \
     -port 2456 \
     -world \"$WORLD_NAME\" \
