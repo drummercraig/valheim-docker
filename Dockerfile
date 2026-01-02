@@ -1,3 +1,4 @@
+
 FROM ubuntu:24.04
 
 # Install dependencies
@@ -8,12 +9,13 @@ RUN useradd -m valheim && mkdir -p /opt/valheim && chown valheim:valheim /opt/va
 USER valheim
 WORKDIR /opt/valheim
 
-# Copy installation scripts
+# Copy installation scripts and entrypoint
 COPY install_steamcmd.sh /tmp/install_steamcmd.sh
 COPY install_valheim.sh /tmp/install_valheim.sh
+COPY entrypoint.sh /opt/valheim/entrypoint.sh
 
 # Make scripts executable
-RUN chmod +x /tmp/install_steamcmd.sh /tmp/install_valheim.sh
+RUN chmod +x /tmp/install_steamcmd.sh /tmp/install_valheim.sh /opt/valheim/entrypoint.sh
 
 # Run SteamCMD installation
 RUN /tmp/install_steamcmd.sh
@@ -30,5 +32,5 @@ ENV SERVER_NAME="MyValheimServer" \
     SERVER_PASS="secret" \
     SERVER_PUBLIC="1"
 
-# Start Valheim server using environment variables
-CMD ["/opt/valheim/valheim_server.x86_64", "-name", "$SERVER_NAME", "-port", "2456", "-world", "$WORLD_NAME", "-password", "$SERVER_PASS", "-public", "$SERVER_PUBLIC"]
+# Use entrypoint to fix permissions and start server
+ENTRYPOINT ["/opt/valheim/entrypoint.sh"]

@@ -1,3 +1,4 @@
+
 #!/bin/bash
 set -e
 
@@ -7,9 +8,9 @@ COUNTER=0
 
 while [ $COUNTER -lt $MAX_RETRIES ]; do
     echo "Attempt $(($COUNTER+1)) to install Valheim server..."
-    if ~/steamcmd/steamcmd.sh +force_install_dir +login anonymous /opt/valheim +app_update 896660 validate +quit; then
+    if ~/steamcmd/steamcmd.sh +login anonymous +force_install_dir /opt/valheim +app_update 896660 validate +quit; then
         echo "Valheim server installed successfully."
-        exit 0
+        break
     else
         echo "Installation failed. Retrying in $RETRY_DELAY seconds..."
         sleep $RETRY_DELAY
@@ -17,5 +18,11 @@ while [ $COUNTER -lt $MAX_RETRIES ]; do
     fi
 done
 
-echo "Valheim installation failed after $MAX_RETRIES attempts."
-exit 1
+if [ $COUNTER -eq $MAX_RETRIES ]; then
+    echo "Valheim installation failed after $MAX_RETRIES attempts."
+    exit 1
+fi
+
+# Ensure valheim user owns Valheim directory
+chown -R valheim:valheim /opt/valheim
+chmod -R 755 /opt/valheim
