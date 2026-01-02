@@ -7,7 +7,7 @@ while [ $COUNT -lt $RETRIES ]; do
     echo "Installing Valheim (Attempt $((COUNT+1)))..."
     mkdir -p $STEAMCMD_DIR && cd $STEAMCMD_DIR
     curl -s https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | tar -xz
-    ./steamcmd.sh +login anonymous +force_install_dir $VALHEIM_DIR +app_update 896660 validate +quit && break
+    ./steamcmd.sh +force_install_dir $VALHEIM_DIR +login anonymous +app_update 896660 validate +quit && break
     COUNT=$((COUNT+1))
     sleep 10
 done
