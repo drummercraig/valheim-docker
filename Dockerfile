@@ -9,8 +9,8 @@ USER valheim
 WORKDIR /opt/valheim
 
 # Copy installation scripts
-COPY scripts/install_steamcmd.sh /tmp/install_steamcmd.sh
-COPY scripts/install_valheim.sh /tmp/install_valheim.sh
+COPY install_steamcmd.sh /tmp/install_steamcmd.sh
+COPY install_valheim.sh /tmp/install_valheim.sh
 
 # Make scripts executable
 RUN chmod +x /tmp/install_steamcmd.sh /tmp/install_valheim.sh
