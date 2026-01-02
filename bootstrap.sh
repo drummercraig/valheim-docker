@@ -10,7 +10,7 @@ for dir in /opt/valheim /opt/cache /opt/config /opt/backups; do
     chmod -R 755 "$dir" || echo "Skipping chmod on $dir"
 done
 
-# Original variables (adjust as per original script)
+# Variables
 STEAMCMD_DIR="/opt/steamcmd"
 VALHEIM_DIR="/opt/valheim"
 CACHE_DIR="/opt/cache"
@@ -19,8 +19,6 @@ VALHEIM_CACHE="$CACHE_DIR/valheim_server"
 
 # Ensure cache directory exists
 mkdir -p "$CACHE_DIR"
-
-echo "Starting bootstrap process..."
 
 # --- SteamCMD Installation ---
 if ! command -v steamcmd &>/dev/null; then
@@ -60,8 +58,12 @@ else
 fi
 
 echo "Bootstrap complete!"
-``
 
 # Drop privileges and start server
 echo "Starting Valheim server as valheim user..."
-exec su -s /bin/bash valheim -c "/opt/valheim/valheim_server.x86_64 -name \"$SERVER_NAME\" -port 2456 -world \"$WORLD_NAME\" -password \"$SERVER_PASS\" -public \"$SERVER_PUBLIC\"
+exec su -s /bin/bash valheim -c "/opt/valheim/valheim_server.x86_64 \
+    -name \"$SERVER_NAME\" \
+    -port 2456 \
+    -world \"$WORLD_NAME\" \
+    -password \"$SERVER_PASS\" \
+    -public \"$SERVER_PUBLIC\""
