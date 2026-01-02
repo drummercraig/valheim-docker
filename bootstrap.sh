@@ -33,7 +33,10 @@ if ! command -v steamcmd &>/dev/null; then
     echo "Installing SteamCMD from cache..."
     mkdir -p "$STEAMCMD_DIR"
     tar -xzf "$STEAMCMD_TAR" -C "$STEAMCMD_DIR"
-    ln -sf "$STEAMCMD_DIR/steamcmd.sh" /usr/local/bin/steamcmd
+    #ln -sf "$STEAMCMD_DIR/steamcmd.sh" /usr/local/bin/steamcmd
+    echo "Adding SteamCMD to PATH..."
+    export PATH="$STEAMCMD_DIR:$PATH"
+
 else
     echo "SteamCMD already installed."
 fi
