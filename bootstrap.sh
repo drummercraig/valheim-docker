@@ -1,9 +1,10 @@
+
 #!/usr/bin/env bash
 set -e
 
 echo "Starting bootstrap process..."
 
-# Fix permissions on mounted volumes (ignore errors if not allowed)
+# Fix permissions on mounted volumes
 for dir in /opt/valheim /opt/cache /opt/config /opt/backups; do
     echo "Ensuring permissions for $dir..."
     chown -R valheim:valheim "$dir" || echo "Skipping chown on $dir"
@@ -17,7 +18,6 @@ CACHE_DIR="/opt/cache"
 STEAMCMD_TAR="$CACHE_DIR/steamcmd_linux.tar.gz"
 VALHEIM_CACHE="$CACHE_DIR/valheim_server"
 
-# Ensure cache directory exists
 mkdir -p "$CACHE_DIR"
 
 # --- SteamCMD Installation ---
@@ -33,10 +33,14 @@ if ! command -v steamcmd &>/dev/null; then
     echo "Installing SteamCMD from cache..."
     mkdir -p "$STEAMCMD_DIR"
     tar -xzf "$STEAMCMD_TAR" -C "$STEAMCMD_DIR"
-    #ln -sf "$STEAMCMD_DIR/steamcmd.sh" /usr/local/bin/steamcmd
-    echo "Adding SteamCMD to PATH..."
-    export PATH="$STEAMCMD_DIR:$PATH"
 
+    # Create wrapper to run SteamCMD from its directory
+    echo "Creating SteamCMD wrapper..."
+    cat << 'EOF' > /usr/local/bin/steamcmd
+#!/usr/bin/env bash
+cd /opt/steamcmd && exec ./steamcmd.sh "$@"
+EOF
+    chmod +x /usr/local/bin/steamcmd
 else
     echo "SteamCMD already installed."
 fi
