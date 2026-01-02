@@ -1,4 +1,3 @@
-
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -19,5 +18,4 @@ COPY entrypoint.sh install_valheim.sh install_bepinex.sh install_valheimplus.sh 
 # Make all scripts executable
 RUN chmod +x *.sh
 
-# Set entrypoint
 ENTRYPOINT ["./entrypoint.sh"]
