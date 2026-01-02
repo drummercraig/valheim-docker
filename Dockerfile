@@ -6,8 +6,6 @@ RUN apt-get update && apt-get install -y wget unzip curl lib32gcc-s1 && rm -rf /
 
 # Create valheim user and directories
 RUN useradd -m valheim && mkdir -p /opt/valheim && chown valheim:valheim /opt/valheim
-USER valheim
-WORKDIR /opt/valheim
 
 # Copy installation scripts and entrypoint
 COPY install_steamcmd.sh /tmp/install_steamcmd.sh
@@ -16,6 +14,10 @@ COPY entrypoint.sh /opt/valheim/entrypoint.sh
 
 # Make scripts executable
 RUN chmod +x /tmp/install_steamcmd.sh /tmp/install_valheim.sh /opt/valheim/entrypoint.sh
+
+# Switch to valheim user AFTER permissions are set
+USER valheim
+WORKDIR /opt/valheim
 
 # Run SteamCMD installation
 RUN /tmp/install_steamcmd.sh
