@@ -52,8 +52,8 @@ if [ ! -f "$VALHEIM_DIR/valheim_server.x86_64" ]; then
         cp -r "$VALHEIM_CACHE" "$VALHEIM_DIR"
     else
         echo "Downloading Valheim server via SteamCMD..."
-        steamcmd +login anonymous \
-                 +force_install_dir "$VALHEIM_DIR" \
+        steamcmd +force_install_dir "$VALHEIM_DIR" \
+                 +login anonymous \
                  +app_update 896660 validate \
                  +quit
         echo "Caching Valheim server files..."
