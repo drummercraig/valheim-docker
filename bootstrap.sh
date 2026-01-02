@@ -83,12 +83,13 @@ fi
 
 echo "Bootstrap complete!"
 
-# Drop privileges and start server
+# --- Start Valheim Server ---
 echo "Starting Valheim server as valheim user..."
 exec su -s /bin/bash valheim -c "/opt/valheim/valheim_server.x86_64 \
     -nographics -batchmode \
-    -name \"$SERVER_NAME\" \
+    -name \"${SERVER_NAME:-MyValheimServer}\" \
     -port 2456 \
-    -world \"$WORLD_NAME\" \
-    -password \"$SERVER_PASS\" \
-    -public \"$SERVER_PUBLIC\""
+    -world \"${WORLD_NAME:-Dedicated}\" \
+    -password \"${SERVER_PASS:-secret}\" \
+    -public \"${SERVER_PUBLIC:-1}\" \
+    -savedir /opt/valheim/worlds"
