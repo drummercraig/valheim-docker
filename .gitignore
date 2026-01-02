@@ -1,5 +1,8 @@
 # Valheim server data directory
 valheim-data/
+config
+backups
+cache
 
 # Docker volumes
 *.log
