@@ -9,6 +9,6 @@ services:
       - ./valheim-data:/valheim-data
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}/udp"
-      - "$((SERVER_PORT+1)):$((SERVER_PORT+1))/udp"
-      - "$((SERVER_PORT+2)):$((SERVER_PORT+2))/udp"
+      - "${SERVER_PORT_1}:${SERVER_PORT_1}/udp"
+      - "${SERVER_PORT_2}:${SERVER_PORT_2}/udp"
     restart: unless-stopped
