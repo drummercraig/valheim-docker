@@ -10,6 +10,10 @@ for dir in /opt/valheim /opt/cache /opt/config /opt/backups; do
     chmod -R 755 "$dir" || echo "Skipping chmod on $dir"
 done
 
+
+#!/usr/bin/env bash
+set -e
+
 # Original variables (adjust as per original script)
 STEAMCMD_DIR="/opt/steamcmd"
 VALHEIM_DIR="/opt/valheim"
@@ -17,6 +21,7 @@ CACHE_DIR="/opt/cache"
 STEAMCMD_TAR="$CACHE_DIR/steamcmd_linux.tar.gz"
 VALHEIM_CACHE="$CACHE_DIR/valheim_server"
 
+# Ensure cache directory exists
 mkdir -p "$CACHE_DIR"
 
 # --- SteamCMD Installation ---
