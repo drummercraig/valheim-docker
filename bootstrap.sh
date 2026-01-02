@@ -39,9 +39,9 @@ else
 fi
 
 # --- Valheim Server Installation ---
-if [ ! -d "$VALHEIM_DIR" ]; then
-    echo "Valheim server not found. Checking cache..."
-    if [ -d "$VALHEIM_CACHE" ]; then
+if [ ! -f "$VALHEIM_DIR/valheim_server.x86_64" ]; then
+    echo "Valheim server not found or incomplete. Checking cache..."
+    if [ -f "$VALHEIM_CACHE/valheim_server.x86_64" ]; then
         echo "Using cached Valheim server files..."
         cp -r "$VALHEIM_CACHE" "$VALHEIM_DIR"
     else
