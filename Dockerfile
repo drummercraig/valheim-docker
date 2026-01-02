@@ -1,21 +1,23 @@
+
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /opt
 
-# Install dependencies
+# Install dependencies including rsync
 RUN apt-get update && apt-get install -y \
     curl wget unzip cron systemd tzdata \
-    lib32gcc-s1 lib32stdc++6 \
+    lib32gcc-s1 lib32stdc++6 rsync \
     && rm -rf /var/lib/apt/lists/*
 
-# Create directories
+# Create directories for Valheim and SteamCMD
 RUN mkdir -p /opt/valheim /opt/steamcmd /valheim-data
 
-# Copy scripts and env file
-COPY entrypoint.sh install_valheim.sh install_bepinex.sh install_valheimplus.sh install_steamcmd.sh backup.sh restart.sh settings.env ./
+# Copy all scripts and settings.env into /opt
+COPY entrypoint.sh install_valheim.sh install_bepinex.sh install_valheimplus.sh backup.sh restart.sh build_start_cmd.sh start_server.sh settings.env ./
 
-# Make scripts executable
+# Make all scripts executable
 RUN chmod +x *.sh
 
+# Set entrypoint
 ENTRYPOINT ["./entrypoint.sh"]

@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-source ./settings.env
+source /opt/settings.env
 
 if [ "$RESTART_IF_IDLE" = "true" ]; then
     PLAYER_COUNT=$(netstat -an | grep $SERVER_PORT | wc -l)

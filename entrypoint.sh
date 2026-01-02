@@ -1,12 +1,11 @@
 #!/bin/bash
 set -e
-source ./settings.env
+
+# Load environment variables from /opt
+source /opt/settings.env
 
 # Set timezone
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-# Install SteamCmd
-./install_steamcmd.sh
 
 # Install Valheim with retry logic
 ./install_valheim.sh
@@ -21,14 +20,14 @@ case "$MOD_LOADER" in
     ;;
 esac
 
-# Setup cron for restart
+# Setup cron for scheduled restart
 echo "$RESTART_CRON root /restart.sh" >> /etc/crontab
 service cron start
 
 # Prepare persistent directories
 mkdir -p "$PLUGIN_DEST" "$PATCHER_DEST" "$CONFIG_DEST" "$WORLD_SRC" "$WORLD_BACKUP"
 
-# Sync persistent data
+# Sync persistent data using rsync
 rsync -a "$PLUGIN_SRC/" "$PLUGIN_DEST/" || true
 rsync -a "$PATCHER_SRC/" "$PATCHER_DEST/" || true
 rsync -a "$CONFIG_SRC/" "$CONFIG_DEST/" || true
@@ -36,10 +35,11 @@ rsync -a "$CONFIG_SRC/" "$CONFIG_DEST/" || true
 # Start backup process in background
 ./backup.sh &
 
-# Build and execute Valheim server command using shared script
+# Build Valheim server start command using shared script
 START_CMD=$(./build_start_cmd.sh)
 echo "Starting Valheim server with command:"
 echo "$START_CMD"
 
+# Change to Valheim directory and execute command
 cd "$VALHEIM_DIR"
 eval $START_CMD
