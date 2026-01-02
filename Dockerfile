@@ -1,48 +1,21 @@
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV STEAMCMD_DIR=/opt/steamcmd
-ENV VALHEIM_DIR=/opt/valheim
+WORKDIR /opt
 
+# Install dependencies
 RUN apt-get update && apt-get install -y \
-    curl wget unzip cron tzdata lib32gcc-s1 ca-certificates \
+    curl wget unzip cron systemd tzdata \
+    lib32gcc-s1 lib32stdc++6 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p ${STEAMCMD_DIR} ${VALHEIM_DIR} /valheim-data
-# Ensure folder structure exists
-RUN mkdir -p /valheim-data/BepInEx/plugins /valheim-data/BepInEx/patchers /valheim-data/BepInEx/config
-RUN mkdir -p /valheim-data/worlds /valheim-data/backups
+# Create directories
+RUN mkdir -p /opt/valheim /opt/steamcmd /valheim-data
 
-# Apply initial permissions
-RUN chown -R ${PUID}:${PGID} /valheim-data
-RUN chmod -R 755 /valheim-data
+# Copy scripts and env file
+COPY entrypoint.sh install_valheim.sh install_bepinex.sh install_valheimplus.sh backup.sh restart.sh start_server.sh settings.env ./
 
-#RUN useradd -m -d /home/valheim -s /bin/bash valheim && \
-#    chown -R valheim:valheim ${STEAMCMD_DIR} ${VALHEIM_DIR} /valheim-data /tmp
+# Make scripts executable
+RUN chmod +x *.sh
 
-COPY install_steamcmd.sh /install_steamcmd.sh
-COPY install_valheim.sh /install_valheim.sh
-COPY install_modloader.sh /install_modloader.sh
-COPY install_bepinex.sh /install_bepinex.sh
-COPY entrypoint.sh /entrypoint.sh
-COPY start_server.sh /start_server.sh
-COPY idle_check.sh /idle_check.sh
-COPY crontab.txt /crontab.txt
-COPY settings.env /settings.env
-
-EXPOSE 2456/udp 2457/udp 2456/tcp 2457/tcp
-
-# Set volume for persistent data
-VOLUME ["/valheim-data"]
-
-RUN chmod +x /*.sh
-RUN crontab /crontab.txt
-
-#USER valheim
-USER ${PUID}
-WORKDIR ${VALHEIM_DIR}
-
-HEALTHCHECK --interval=60s --timeout=10s --start-period=120s \
-    CMD pgrep -f valheim_server.x86_64 || exit 1
-
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
