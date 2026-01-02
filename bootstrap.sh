@@ -10,6 +10,8 @@ for dir in /opt/valheim /opt/cache /opt/config /opt/backups; do
     chmod -R 755 "$dir" || echo "Skipping chmod on $dir"
 done
 
+/install_steamcmd.sh
+
 # Install Valheim at runtime if missing
 if [ ! -f /opt/valheim/valheim_server.x86_64 ]; then
     echo "Valheim server binary missing. Installing latest version..."
