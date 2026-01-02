@@ -10,10 +10,50 @@ for dir in /opt/valheim /opt/cache /opt/config /opt/backups; do
     chmod -R 755 "$dir" || echo "Skipping chmod on $dir"
 done
 
-# Install Valheim at runtime if missing
-if [ ! -f /opt/valheim/valheim_server.x86_64 ]; then
-    echo "Valheim server binary missing. Installing latest version..."
-    su -s /bin/bash valheim -c "~/steamcmd/steamcmd.sh +force_install_dir /opt/valheim +login anonymous +app_update 896660 validate +quit"
+# Original variables (adjust as per original script)
+STEAMCMD_DIR="/opt/steamcmd"
+VALHEIM_DIR="/opt/valheim"
+CACHE_DIR="/opt/cache"
+STEAMCMD_TAR="$CACHE_DIR/steamcmd_linux.tar.gz"
+VALHEIM_CACHE="$CACHE_DIR/valheim_server"
+
+mkdir -p "$CACHE_DIR"
+
+# --- SteamCMD Installation ---
+if ! command -v steamcmd &>/dev/null; then
+    echo "SteamCMD not found. Checking cache..."
+    if [ -f "$STEAMCMD_TAR" ]; then
+        echo "Using cached SteamCMD archive..."
+    else
+        echo "Downloading SteamCMD..."
+        curl -sSL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" -o "$STEAMCMD_TAR"
+    fi
+
+    echo "Installing SteamCMD from cache..."
+    mkdir -p "$STEAMCMD_DIR"
+    tar -xzf "$STEAMCMD_TAR" -C "$STEAMCMD_DIR"
+    ln -sf "$STEAMCMD_DIR/steamcmd.sh" /usr/local/bin/steamcmd
+else
+    echo "SteamCMD already installed."
+fi
+
+# --- Valheim Server Installation ---
+if [ ! -d "$VALHEIM_DIR" ]; then
+    echo "Valheim server not found. Checking cache..."
+    if [ -d "$VALHEIM_CACHE" ]; then
+        echo "Using cached Valheim server files..."
+        cp -r "$VALHEIM_CACHE" "$VALHEIM_DIR"
+    else
+        echo "Downloading Valheim server via SteamCMD..."
+        steamcmd +login anonymous \
+                 +force_install_dir "$VALHEIM_DIR" \
+                 +app_update 896660 validate \
+                 +quit
+        echo "Caching Valheim server files..."
+        cp -r "$VALHEIM_DIR" "$VALHEIM_CACHE"
+    fi
+else
+    echo "Valheim server already installed."
 fi
 
 # Drop privileges and start server
