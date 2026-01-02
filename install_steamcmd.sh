@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-source /settings.env
+source ./settings.env
 
 echo "======================================"
 echo "SteamCMD Installation"
