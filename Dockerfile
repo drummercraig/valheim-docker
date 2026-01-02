@@ -18,4 +18,6 @@ COPY entrypoint.sh install_valheim.sh install_bepinex.sh install_valheimplus.sh 
 # Make all scripts executable
 RUN chmod +x *.sh
 
+EXPOSE 2456/udp 2457/udp 2456/tcp 2457/tcp
+
 ENTRYPOINT ["./entrypoint.sh"]
