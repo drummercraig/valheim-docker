@@ -1,23 +1,34 @@
 FROM ubuntu:24.04
 
-ENV DEBIAN_FRONTEND=noninteractive
-WORKDIR /opt
+# Install dependencies
+RUN apt-get update && apt-get install -y wget unzip curl lib32gcc-s1 && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies including rsync
-RUN apt-get update && apt-get install -y \
-    curl wget unzip cron systemd tzdata \
-    lib32gcc-s1 lib32stdc++6 rsync \
-    && rm -rf /var/lib/apt/lists/*
+# Create valheim user and directories
+RUN useradd -m valheim && mkdir -p /opt/valheim && chown valheim:valheim /opt/valheim
+USER valheim
+WORKDIR /opt/valheim
 
-# Create directories for Valheim and SteamCMD
-RUN mkdir -p /opt/valheim /opt/steamcmd
+# Copy installation scripts
+COPY scripts/install_steamcmd.sh /tmp/install_steamcmd.sh
+COPY scripts/install_valheim.sh /tmp/install_valheim.sh
 
-# Copy all scripts and settings.env into /opt
-COPY entrypoint.sh install_valheim.sh install_bepinex.sh install_valheimplus.sh backup.sh restart.sh build_start_cmd.sh settings.env ./
+# Make scripts executable
+RUN chmod +x /tmp/install_steamcmd.sh /tmp/install_valheim.sh
 
-# Make all scripts executable
-RUN chmod +x *.sh
+# Run SteamCMD installation
+RUN /tmp/install_steamcmd.sh
 
-EXPOSE 2456/udp 2457/udp 2456/tcp 2457/tcp
+# Run Valheim installation with retry logic
+RUN /tmp/install_valheim.sh
 
-ENTRYPOINT ["./entrypoint.sh"]
+# Expose Valheim ports
+EXPOSE 2456-2458/udp
+
+# Environment variables
+ENV SERVER_NAME="MyValheimServer" \
+    WORLD_NAME="Dedicated" \
+    SERVER_PASS="secret" \
+    SERVER_PUBLIC="1"
+
+# Start Valheim server using environment variables
+CMD ["/opt/valheim/valheim_server.x86_64", "-name", "$SERVER_NAME", "-port", "2456", "-world", "$WORLD_NAME", "-password", "$SERVER_PASS", "-public", "$SERVER_PUBLIC"]
