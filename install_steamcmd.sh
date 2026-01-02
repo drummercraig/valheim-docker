@@ -1,11 +1,18 @@
 #!/bin/bash
 set -e
 
-# Create steamcmd directory and download SteamCMD
-mkdir -p ~/steamcmd
-cd ~/steamcmd
-curl -sSL https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | tar -xzv
+CACHE_DIR="/opt/cache"
+STEAMCMD_ARCHIVE="$CACHE_DIR/steamcmd_linux.tar.gz"
 
-# Ensure valheim user owns steamcmd directory
-#chown -R valheim:valheim ~/steamcmd
-#chmod -R 755 ~/steamcmd
+mkdir -p ~/steamcmd
+
+if [ -f "$STEAMCMD_ARCHIVE" ]; then
+    echo "Using cached SteamCMD archive..."
+else
+    echo "Downloading SteamCMD..."
+    curl -sSL https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz -o "$STEAMCMD_ARCHIVE"
+fi
+
+tar -xzvf "$STEAMCMD_ARCHIVE" -C ~/steamcmd
+#chown -R valheim:valheim ~/steamcmd || true
+#chmod -R 755 ~/steamcmd || true

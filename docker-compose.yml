@@ -1,11 +1,15 @@
 services:
   valheim:
     build: .
+    image: drummercraig/valheim-server:ubuntu24
     container_name: valheim-server
     ports:
       - "2456-2458:2456-2458/udp"
     volumes:
       - ./valheim-data:/opt/valheim
+      - ./cache:/opt/cache
+      - ./config:/opt/config
+      - ./backups:/opt/backups
     env_file:
       - .env
     restart: unless-stopped
