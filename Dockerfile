@@ -5,7 +5,7 @@ FROM ubuntu:24.04
 RUN apt-get update && apt-get install -y wget unzip curl rsync lib32gcc-s1 tini && apt-get clean supervisor && rm -rf /var/lib/apt/lists/*
 
 # Create valheim user and directories
-RUN useradd -m valheim && mkdir -p /opt/valheim /opt/downloadcache /opt/userdata /opt/backups
+RUN useradd -m valheim && mkdir -p /opt/valheim /userdata
 
 # Copy scripts and bootstrap BEFORE switching user
 COPY install_steamcmd.sh /tmp/install_steamcmd.sh
@@ -27,6 +27,6 @@ ENV SERVER_NAME="MyValheimServer" \
     SERVER_PUBLIC="1"
     
 # Use Tini as entrypoint
-ENTRYPOINT ["/usr/bin/tini", "--", ]
+ENTRYPOINT ["/usr/bin/tini", "--"]
 
 CMD ["/bootstrap.sh"]
