@@ -19,31 +19,39 @@ while [ ! -f /opt/valheim/valheim_server.x86_64 ]; do
     sleep 5
 done
 
-# Setup world persistence
-echo "Setting up world file persistence..."
+echo "=== Setting up world file persistence ==="
 
-# If worlds exist in /opt/valheim/worlds_local but not in /config, move them
-if [ -d /opt/valheim/worlds_local ] && [ ! -L /opt/valheim/worlds_local ]; then
-    echo "Found existing worlds in container, moving to persistent storage..."
-    if [ "$(ls -A /opt/valheim/worlds_local 2>/dev/null)" ]; then
-        cp -r /opt/valheim/worlds_local/* /config/worlds_local/ 2>/dev/null || true
+# Ensure config directories exist
+mkdir -p /config/worlds_local
+
+# Remove any existing worlds_local in server directory (directory or symlink)
+if [ -e /opt/valheim/worlds_local ] || [ -L /opt/valheim/worlds_local ]; then
+    echo "Removing existing /opt/valheim/worlds_local..."
+    
+    # If it's a directory with files, back them up first
+    if [ -d /opt/valheim/worlds_local ] && [ ! -L /opt/valheim/worlds_local ]; then
+        if [ "$(ls -A /opt/valheim/worlds_local 2>/dev/null)" ]; then
+            echo "Backing up existing worlds to /config/worlds_local..."
+            cp -v /opt/valheim/worlds_local/* /config/worlds_local/ 2>/dev/null || true
+        fi
     fi
+    
     rm -rf /opt/valheim/worlds_local
 fi
 
-# Create symlink to persistent storage
-if [ ! -L /opt/valheim/worlds_local ]; then
-    echo "Creating symlink: /opt/valheim/worlds_local -> /config/worlds_local"
-    ln -sf /config/worlds_local /opt/valheim/worlds_local
-fi
+# Create symlink BEFORE server starts
+echo "Creating symlink: /opt/valheim/worlds_local -> /config/worlds_local"
+ln -sf /config/worlds_local /opt/valheim/worlds_local
 
 # Verify symlink
-if [ -L /opt/valheim/worlds_local ]; then
-    echo "World persistence configured successfully"
-    ls -la /opt/valheim/worlds_local
-else
-    echo "ERROR: Failed to create worlds symlink!"
-fi
+echo "Verifying symlink..."
+ls -la /opt/valheim/ | grep worlds_local
+readlink -f /opt/valheim/worlds_local
+
+echo "Contents of /config/worlds_local:"
+ls -la /config/worlds_local/ || echo "Directory is empty"
+
+echo "=== World persistence setup complete ==="
 
 # Set timezone
 if [ -n "$TZ" ]; then
