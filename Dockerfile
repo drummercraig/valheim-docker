@@ -1,0 +1,64 @@
+FROM ubuntu:24.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive \
+    SERVER_NAME="My Valheim Server" \
+    SERVER_PORT=2456 \
+    WORLD_NAME="Dedicated" \
+    SERVER_PASS="secret" \
+    SERVER_PUBLIC=true \
+    UPDATE_INTERVAL=900 \
+    BACKUPS_ENABLED=true \
+    BACKUPS_INTERVAL=3600 \
+    BACKUPS_DIRECTORY=/config/backups \
+    BACKUPS_MAX_AGE=3 \
+    TZ=Etc/UTC
+
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    lib32gcc-s1 \
+    libsdl2-2.0-0 \
+    supervisor \
+    tzdata \
+    zip \
+    unzip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create directories
+RUN mkdir -p /opt/valheim \
+    /opt/steamcmd \
+    /config/worlds_local \
+    /config/backups \
+    /var/log/supervisor
+
+# Download and install SteamCMD
+RUN cd /opt/steamcmd && \
+    curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+
+# Copy scripts
+COPY valheim-server.sh /usr/local/bin/valheim-server
+COPY valheim-updater.sh /usr/local/bin/valheim-updater
+COPY valheim-backup.sh /usr/local/bin/valheim-backup
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Make scripts executable
+RUN chmod +x /usr/local/bin/valheim-server \
+    /usr/local/bin/valheim-updater \
+    /usr/local/bin/valheim-backup
+
+# Expose ports
+# Game port (UDP)
+EXPOSE 2456/udp
+# Query port (UDP) 
+EXPOSE 2457/udp
+# Crossplay port (UDP, if enabled)
+EXPOSE 2458/udp
+
+# Volumes
+VOLUME ["/config", "/opt/valheim"]
+
+# Start supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
