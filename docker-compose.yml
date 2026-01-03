@@ -6,10 +6,8 @@ services:
     ports:
       - "2456-2458:2456-2458/udp"
     volumes:
-      - ./valheim-data:/opt/valheim
-      - ./cache:/opt/cache
-      - ./config:/opt/config
-      - ./backups:/opt/backups
+      - ./valheim-server/serverdata:/opt/valheim
+      - ./valheim-server/userdata:/userdata
     env_file:
       - .env
     restart: unless-stopped

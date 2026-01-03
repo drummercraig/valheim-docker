@@ -3,8 +3,21 @@ set -e
 
 echo "Starting bootstrap process..."
 
+# Ensure required directories exist
+mkdir -p /serverdata/downloadcache
+mkdir -p /userdata/worlds
+mkdir -p /userdata/bepinex/plugins
+mkdir -p /userdata/bepinex/patchers
+mkdir -p /userdata/bepinex/config
+mkdir -p /userdata/backups
+chown -R 1000:1000 /serverdata
+chown -R 1000:1000 /userdata
+chmod -R 755 /serverdata
+chmod -R 755 /userdata
+
+
 # Fix permissions on mounted volumes
-for dir in /opt/valheim /opt/cache /opt/config /opt/backups; do
+for dir in /opt/valheim /userdata; do
     echo "Ensuring permissions for $dir..."
     chown -R valheim:valheim "$dir" || echo "Skipping chown on $dir"
     chmod -R 755 "$dir" || echo "Skipping chmod on $dir"
@@ -13,7 +26,7 @@ done
 # Variables
 STEAMCMD_DIR="/opt/steamcmd"
 VALHEIM_DIR="/opt/valheim"
-CACHE_DIR="/opt/cache"
+CACHE_DIR="/opt/downloadcache"
 STEAMCMD_TAR="$CACHE_DIR/steamcmd_linux.tar.gz"
 VALHEIM_CACHE="$CACHE_DIR/valheim_server"
 
@@ -21,7 +34,7 @@ mkdir -p "$CACHE_DIR"
 
 # --- SteamCMD Installation ---
 if ! command -v steamcmd &>/dev/null; then
-    echo "SteamCMD not found. Checking cache..."
+    echo "SteamCMD not found. Checking downloadcache..."
     if [ -f "$STEAMCMD_TAR" ]; then
         echo "Using cached SteamCMD archive..."
     else
@@ -29,7 +42,7 @@ if ! command -v steamcmd &>/dev/null; then
         curl -sSL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" -o "$STEAMCMD_TAR"
     fi
 
-    echo "Installing SteamCMD from cache..."
+    echo "Installing SteamCMD from downloadcache..."
     mkdir -p "$STEAMCMD_DIR"
     tar -xzf "$STEAMCMD_TAR" -C "$STEAMCMD_DIR"
 
@@ -46,7 +59,7 @@ fi
 
 # --- Valheim Server Installation with Retry ---
 if [ ! -f "$VALHEIM_DIR/valheim_server.x86_64" ]; then
-    echo "Valheim server not found or incomplete. Checking cache..."
+    echo "Valheim server not found or incomplete. Checking downloadcache..."
     if [ -f "$VALHEIM_CACHE/valheim_server.x86_64" ]; then
         echo "Using cached Valheim server files..."
         cp -r "$VALHEIM_CACHE" "$VALHEIM_DIR"
