@@ -9,8 +9,8 @@ services:
       - "2456-2457:2456-2457/udp"
       - "2458:2458/udp"  # Crossplay port
     volumes:
-      - ./config:/config
-      - ./data:/opt/valheim
+      - ./userfiles:/userfiles
+      - ./serverfiles:/opt/valheim
     environment:
       - SERVER_NAME=My Valheim Server
       - SERVER_PORT=2456
@@ -20,7 +20,7 @@ services:
       - UPDATE_INTERVAL=900
       - BACKUPS_ENABLED=true
       - BACKUPS_INTERVAL=3600
-      - BACKUPS_DIRECTORY=/config/backups
+      - BACKUPS_DIRECTORY=/userfiles/backups
       - BACKUPS_MAX_AGE=3
       - TZ=America/New_York
       # - SERVER_ARGS=-crossplay  # Uncomment for crossplay support
@@ -29,6 +29,6 @@ services:
     deploy:
       resources:
         limits:
-          memory: 4G
+          memory: 8G
         reservations:
-          memory: 2G
+          memory: 4G
