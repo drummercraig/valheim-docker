@@ -7,7 +7,25 @@ echo "VALHEIM WORLD FILES DEBUG"
 echo "=========================================="
 echo ""
 
-echo "1. Checking /opt/valheim/worlds_local"
+echo "1. Checking Unity config directory (ACTUAL location)"
+echo "--------------------------------------"
+UNITY_WORLDS="/root/.config/unity3d/IronGate/Valheim/worlds_local"
+if [ -L "$UNITY_WORLDS" ]; then
+    echo "✓ Is a symlink"
+    echo "  Target: $(readlink -f $UNITY_WORLDS)"
+    ls -la "$UNITY_WORLDS"/ 2>/dev/null || echo "  (empty or inaccessible)"
+elif [ -d "$UNITY_WORLDS" ]; then
+    echo "✗ Is a DIRECTORY (should be symlink!)"
+    ls -la "$UNITY_WORLDS"/
+elif [ -e "$UNITY_WORLDS" ]; then
+    echo "✗ Exists but is not a directory or symlink"
+    ls -la "$UNITY_WORLDS"
+else
+    echo "✗ Does NOT exist"
+fi
+echo ""
+
+echo "2. Checking /opt/valheim/worlds_local"
 echo "--------------------------------------"
 if [ -L /opt/valheim/worlds_local ]; then
     echo "✓ Is a symlink"
@@ -24,7 +42,7 @@ else
 fi
 echo ""
 
-echo "2. Checking /config/worlds_local"
+echo "3. Checking /config/worlds_local (PERSISTENT storage)"
 echo "--------------------------------------"
 if [ -d /config/worlds_local ]; then
     echo "✓ Directory exists"
@@ -35,8 +53,11 @@ else
 fi
 echo ""
 
-echo "3. Searching for .db and .fwl files"
+echo "4. Searching for .db and .fwl files EVERYWHERE"
 echo "--------------------------------------"
+echo "In /root/.config/unity3d/:"
+find /root/.config/unity3d/ -name "*.db" -o -name "*.fwl" 2>/dev/null || echo "  (none found)"
+echo ""
 echo "In /opt/valheim:"
 find /opt/valheim -maxdepth 2 -name "*.db" -o -name "*.fwl" 2>/dev/null || echo "  (none found)"
 echo ""
@@ -44,21 +65,23 @@ echo "In /config:"
 find /config -name "*.db" -o -name "*.fwl" 2>/dev/null || echo "  (none found)"
 echo ""
 
-echo "4. Server configuration"
+echo "5. Server configuration"
 echo "--------------------------------------"
 echo "  SERVER_NAME: $SERVER_NAME"
 echo "  WORLD_NAME: $WORLD_NAME"
 echo "  SERVER_PORT: $SERVER_PORT"
 echo ""
 
-echo "5. Process status"
+echo "6. Process status"
 echo "--------------------------------------"
 ps aux | grep valheim_server || echo "  (server not running)"
 echo ""
 
-echo "6. Recent server logs (last 20 lines)"
+echo "7. Recent server logs (last 30 lines)"
 echo "--------------------------------------"
-tail -20 /var/log/supervisor/valheim-server-stdout*.log 2>/dev/null || echo "  (no logs found)"
+tail -30 /var/log/supervisor/valheim-server-stdout*.log 2>/dev/null || echo "  (no logs found)"
 echo ""
 
+echo "=========================================="
+echo "EXPECTED: Unity path should be symlink to /config/worlds_local"
 echo "=========================================="

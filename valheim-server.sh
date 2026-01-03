@@ -21,32 +21,47 @@ done
 
 echo "=== Setting up world file persistence ==="
 
-# Ensure config directories exist
+# Valheim actually uses the Unity config directory!
+UNITY_WORLDS="/root/.config/unity3d/IronGate/Valheim/worlds_local"
+CONFIG_WORLDS="/config/worlds_local"
+
+# Ensure config directory exists
 mkdir -p /config/worlds_local
 
-# Remove any existing worlds_local in server directory (directory or symlink)
-if [ -e /opt/valheim/worlds_local ] || [ -L /opt/valheim/worlds_local ]; then
-    echo "Removing existing /opt/valheim/worlds_local..."
+# Create Unity config directory structure if needed
+mkdir -p /root/.config/unity3d/IronGate/Valheim
+
+# Remove any existing worlds_local in Unity directory (directory or symlink)
+if [ -e "$UNITY_WORLDS" ] || [ -L "$UNITY_WORLDS" ]; then
+    echo "Removing existing $UNITY_WORLDS..."
     
     # If it's a directory with files, back them up first
-    if [ -d /opt/valheim/worlds_local ] && [ ! -L /opt/valheim/worlds_local ]; then
-        if [ "$(ls -A /opt/valheim/worlds_local 2>/dev/null)" ]; then
+    if [ -d "$UNITY_WORLDS" ] && [ ! -L "$UNITY_WORLDS" ]; then
+        if [ "$(ls -A $UNITY_WORLDS 2>/dev/null)" ]; then
             echo "Backing up existing worlds to /config/worlds_local..."
-            cp -v /opt/valheim/worlds_local/* /config/worlds_local/ 2>/dev/null || true
+            cp -v "$UNITY_WORLDS"/* "$CONFIG_WORLDS/" 2>/dev/null || true
         fi
     fi
     
-    rm -rf /opt/valheim/worlds_local
+    rm -rf "$UNITY_WORLDS"
 fi
 
-# Create symlink BEFORE server starts
-echo "Creating symlink: /opt/valheim/worlds_local -> /config/worlds_local"
-ln -sf /config/worlds_local /opt/valheim/worlds_local
+# Create symlink from Unity directory to persistent storage
+echo "Creating symlink: $UNITY_WORLDS -> $CONFIG_WORLDS"
+ln -sf "$CONFIG_WORLDS" "$UNITY_WORLDS"
 
-# Verify symlink
-echo "Verifying symlink..."
+# Also symlink from /opt/valheim for compatibility
+if [ -e /opt/valheim/worlds_local ] || [ -L /opt/valheim/worlds_local ]; then
+    rm -rf /opt/valheim/worlds_local
+fi
+ln -sf "$CONFIG_WORLDS" /opt/valheim/worlds_local
+
+# Verify symlinks
+echo "Verifying symlinks..."
+echo "Unity path:"
+ls -la "$UNITY_WORLDS" || ls -la /root/.config/unity3d/IronGate/Valheim/ | grep worlds_local
+echo "Server path:"
 ls -la /opt/valheim/ | grep worlds_local
-readlink -f /opt/valheim/worlds_local
 
 echo "Contents of /config/worlds_local:"
 ls -la /config/worlds_local/ || echo "Directory is empty"
