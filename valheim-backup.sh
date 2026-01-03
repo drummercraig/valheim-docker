@@ -16,8 +16,16 @@ create_backup() {
     fi
     
     # Check if there are any world files
-    if [ -z "$(ls -A $WORLDS_DIR/*.db 2>/dev/null)" ]; then
+    # Note: .fwl files are created immediately, but .db files are only written every 20 minutes or on shutdown
+    if [ -z "$(ls -A $WORLDS_DIR/*.fwl 2>/dev/null)" ]; then
         echo "No world files found to backup"
+        return 0
+    fi
+    
+    # Check if .db file exists (actual world data)
+    if [ -z "$(ls -A $WORLDS_DIR/*.db 2>/dev/null)" ]; then
+        echo "World metadata (.fwl) found but world data (.db) not yet saved by server"
+        echo "Valheim saves world data every 20 minutes or on graceful shutdown"
         return 0
     fi
     
