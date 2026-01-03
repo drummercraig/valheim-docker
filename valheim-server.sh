@@ -19,9 +19,30 @@ while [ ! -f /opt/valheim/valheim_server.x86_64 ]; do
     sleep 5
 done
 
-# Create worlds directory symlink if needed
+# Setup world persistence
+echo "Setting up world file persistence..."
+
+# If worlds exist in /opt/valheim/worlds_local but not in /config, move them
+if [ -d /opt/valheim/worlds_local ] && [ ! -L /opt/valheim/worlds_local ]; then
+    echo "Found existing worlds in container, moving to persistent storage..."
+    if [ "$(ls -A /opt/valheim/worlds_local 2>/dev/null)" ]; then
+        cp -r /opt/valheim/worlds_local/* /config/worlds_local/ 2>/dev/null || true
+    fi
+    rm -rf /opt/valheim/worlds_local
+fi
+
+# Create symlink to persistent storage
 if [ ! -L /opt/valheim/worlds_local ]; then
+    echo "Creating symlink: /opt/valheim/worlds_local -> /config/worlds_local"
     ln -sf /config/worlds_local /opt/valheim/worlds_local
+fi
+
+# Verify symlink
+if [ -L /opt/valheim/worlds_local ]; then
+    echo "World persistence configured successfully"
+    ls -la /opt/valheim/worlds_local
+else
+    echo "ERROR: Failed to create worlds symlink!"
 fi
 
 # Set timezone
