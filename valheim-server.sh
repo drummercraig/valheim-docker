@@ -1,16 +1,55 @@
 #!/bin/bash
 set -e
 
-# Function to handle shutdown
+# Source the pre-stop hook
+PRE_STOP_HOOK="/usr/local/bin/pre-stop-hook"
+
+# Function to handle shutdown gracefully
 shutdown() {
-    echo "Shutting down Valheim server..."
-    if [ -n "$VALHEIM_PID" ]; then
-        kill -TERM "$VALHEIM_PID" 2>/dev/null || true
+    echo "=========================================="
+    echo "GRACEFUL SHUTDOWN INITIATED"
+    echo "=========================================="
+    
+    if [ -n "$VALHEIM_PID" ] && kill -0 "$VALHEIM_PID" 2>/dev/null; then
+        echo "Sending SIGTERM to Valheim server (PID: $VALHEIM_PID)..."
+        echo "This will trigger a world save..."
+        echo ""
+        
+        kill -TERM "$VALHEIM_PID"
+        
+        # Run pre-stop hook to monitor the save
+        if [ -x "$PRE_STOP_HOOK" ]; then
+            $PRE_STOP_HOOK
+        fi
+        
+        # Wait for server to exit (should already be done if save completed)
+        local waited=0
+        while kill -0 "$VALHEIM_PID" 2>/dev/null && [ $waited -lt 30 ]; do
+            echo "Waiting for server process to exit... (${waited}s)"
+            sleep 5
+            waited=$((waited + 5))
+        done
+        
+        if kill -0 "$VALHEIM_PID" 2>/dev/null; then
+            echo "Server did not exit gracefully, forcing shutdown..."
+            kill -KILL "$VALHEIM_PID" 2>/dev/null || true
+        else
+            echo "✓ Server process exited cleanly"
+        fi
+        
         wait "$VALHEIM_PID" 2>/dev/null || true
+    else
+        echo "Server process not running"
     fi
+    
+    echo ""
+    echo "=========================================="
+    echo "SHUTDOWN COMPLETE"
+    echo "=========================================="
     exit 0
 }
 
+# Trap SIGTERM and SIGINT for graceful shutdown
 trap shutdown SIGTERM SIGINT
 
 # Wait for updater to install server
@@ -23,10 +62,10 @@ echo "=== Setting up world file persistence ==="
 
 # Valheim actually uses the Unity config directory!
 UNITY_WORLDS="/root/.config/unity3d/IronGate/Valheim/worlds_local"
-CONFIG_WORLDS="/config/worlds_local"
+USERFILES_WORLDS="/userfiles/worlds_local"
 
-# Ensure config directory exists
-mkdir -p /config/worlds_local
+# Ensure userfiles directory exists
+mkdir -p "$USERFILES_WORLDS"
 
 # Create Unity config directory structure if needed
 mkdir -p /root/.config/unity3d/IronGate/Valheim
@@ -38,8 +77,8 @@ if [ -e "$UNITY_WORLDS" ] || [ -L "$UNITY_WORLDS" ]; then
     # If it's a directory with files, back them up first
     if [ -d "$UNITY_WORLDS" ] && [ ! -L "$UNITY_WORLDS" ]; then
         if [ "$(ls -A $UNITY_WORLDS 2>/dev/null)" ]; then
-            echo "Backing up existing worlds to /config/worlds_local..."
-            cp -v "$UNITY_WORLDS"/* "$CONFIG_WORLDS/" 2>/dev/null || true
+            echo "Backing up existing worlds to $USERFILES_WORLDS..."
+            cp -v "$UNITY_WORLDS"/* "$USERFILES_WORLDS/" 2>/dev/null || true
         fi
     fi
     
@@ -47,14 +86,14 @@ if [ -e "$UNITY_WORLDS" ] || [ -L "$UNITY_WORLDS" ]; then
 fi
 
 # Create symlink from Unity directory to persistent storage
-echo "Creating symlink: $UNITY_WORLDS -> $CONFIG_WORLDS"
-ln -sf "$CONFIG_WORLDS" "$UNITY_WORLDS"
+echo "Creating symlink: $UNITY_WORLDS -> $USERFILES_WORLDS"
+ln -sf "$USERFILES_WORLDS" "$UNITY_WORLDS"
 
 # Also symlink from /opt/valheim for compatibility
 if [ -e /opt/valheim/worlds_local ] || [ -L /opt/valheim/worlds_local ]; then
     rm -rf /opt/valheim/worlds_local
 fi
-ln -sf "$CONFIG_WORLDS" /opt/valheim/worlds_local
+ln -sf "$USERFILES_WORLDS" /opt/valheim/worlds_local
 
 # Verify symlinks
 echo "Verifying symlinks..."
@@ -63,8 +102,12 @@ ls -la "$UNITY_WORLDS" || ls -la /root/.config/unity3d/IronGate/Valheim/ | grep 
 echo "Server path:"
 ls -la /opt/valheim/ | grep worlds_local
 
-echo "Contents of /config/worlds_local:"
-ls -la /config/worlds_local/ || echo "Directory is empty"
+echo "Symlink targets:"
+echo "  Unity: $(readlink -f $UNITY_WORLDS)"
+echo "  Server: $(readlink -f /opt/valheim/worlds_local)"
+
+echo "Contents of $USERFILES_WORLDS:"
+ls -la "$USERFILES_WORLDS/" || echo "Directory is empty"
 
 echo "=== World persistence setup complete ==="
 
@@ -92,17 +135,23 @@ if [ -n "$SERVER_ARGS" ]; then
     SERVER_CMD="$SERVER_CMD $SERVER_ARGS"
 fi
 
-echo "Starting Valheim server with command: $SERVER_CMD"
+echo "=========================================="
+echo "Starting Valheim server with command:"
+echo "$SERVER_CMD"
+echo "=========================================="
 cd /opt/valheim
 
 # Export library path for SteamCMD
 export LD_LIBRARY_PATH="/opt/valheim/linux64:$LD_LIBRARY_PATH"
 
-# Start server
+# Start server in background
 eval "$SERVER_CMD" &
 VALHEIM_PID=$!
 
 echo "Valheim server started with PID: $VALHEIM_PID"
+echo "Waiting for server process..."
 
 # Wait for the server process
 wait "$VALHEIM_PID"
+
+echo "Valheim server process ended"
