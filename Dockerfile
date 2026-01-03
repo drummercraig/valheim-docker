@@ -45,6 +45,7 @@ COPY valheim-updater.sh /usr/local/bin/valheim-updater
 COPY valheim-backup.sh /usr/local/bin/valheim-backup
 COPY valheim-sync.sh /usr/local/bin/valheim-sync
 COPY debug-worlds.sh /usr/local/bin/debug-worlds
+COPY force-save.sh /usr/local/bin/force-save
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Make scripts executable
@@ -52,7 +53,8 @@ RUN chmod +x /usr/local/bin/valheim-server \
     /usr/local/bin/valheim-updater \
     /usr/local/bin/valheim-backup \
     /usr/local/bin/valheim-sync \
-    /usr/local/bin/debug-worlds
+    /usr/local/bin/debug-worlds \
+    /usr/local/bin/force-save
 
 # Expose ports
 # Game port (UDP)
