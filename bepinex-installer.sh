@@ -150,6 +150,10 @@ fi
 # Ensure userfiles parent directory exists
 mkdir -p "${USERFILES_BEPINEX}"
 
+# Set permissions so host user can manage files
+# Using 777 for simplicity - files are writable by all
+chmod -R 777 "${USERFILES_BEPINEX}" 2>/dev/null || true
+
 # Function to setup symlink with bidirectional sync
 setup_bepinex_directory() {
     local dir_name="$1"
@@ -161,6 +165,7 @@ setup_bepinex_directory() {
     # Ensure target directory exists
     if [ ! -d "$target_dir" ]; then
         mkdir -p "$target_dir"
+        chmod 777 "$target_dir"
         log "  Created ${target_dir}"
     fi
     
