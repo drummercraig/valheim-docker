@@ -10,7 +10,6 @@ services:
       - "2458:2458/udp"  # Crossplay port
     volumes:
       - ./userfiles:/userfiles
-      - ./userfiles/bepinex:/opt/valheim/BepInEx
       - ./serverfiles:/opt/valheim
     environment:
       - SERVER_NAME=My Valheim Server

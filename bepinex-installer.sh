@@ -121,11 +121,7 @@ if [ "$NEEDS_INSTALL" = true ]; then
     log "Found BepInEx at: ${BEPINEX_SOURCE}"
     log "Installing to ${BEPINEX_INSTALL_PATH}..."
     
-    # Remove any existing symlinks in BepInEx directory before copying
-    rm -f "${BEPINEX_INSTALL_PATH}/BepInEx/plugins"
-    rm -f "${BEPINEX_INSTALL_PATH}/BepInEx/patchers"
-    rm -f "${BEPINEX_INSTALL_PATH}/BepInEx/config"
-    
+    # Copy BepInEx, excluding the directories we'll symlink
     cp -rf "${BEPINEX_SOURCE}"/* "${BEPINEX_INSTALL_PATH}/"
     
     chmod +x "${BEPINEX_INSTALL_PATH}/start_server_bepinex.sh" 2>/dev/null || true
@@ -151,51 +147,71 @@ if [ ! -d "$BEPINEX_DIR" ]; then
     while true; do sleep 3600; done
 fi
 
-# Ensure userfiles directories exist
-log "Creating persistent storage directories..."
+# Ensure userfiles parent directory exists
 mkdir -p "${USERFILES_BEPINEX}"
-# Don't create subdirectories yet - they might be symlinks
 
-# Remove any existing symlinks first
-rm -f "${USERFILES_BEPINEX}/plugins"
-rm -f "${USERFILES_BEPINEX}/patchers"  
-rm -f "${USERFILES_BEPINEX}/config"
-
-# Now create the actual directories
-mkdir -p "${USERFILES_BEPINEX}/plugins"
-mkdir -p "${USERFILES_BEPINEX}/patchers"
-mkdir -p "${USERFILES_BEPINEX}/config"
-
-# Function to setup a symlink
-setup_symlink() {
+# Function to setup symlink with bidirectional sync
+setup_bepinex_directory() {
     local dir_name="$1"
     local source_dir="${BEPINEX_DIR}/${dir_name}"
     local target_dir="${USERFILES_BEPINEX}/${dir_name}"
     
     log "Setting up ${dir_name}..."
     
-    if [ -d "$source_dir" ] && [ ! -L "$source_dir" ]; then
-        log "  Backing up existing ${dir_name}..."
-        if [ "$(ls -A ${source_dir} 2>/dev/null)" ]; then
-            cp -a "${source_dir}"/* "${target_dir}/" 2>/dev/null || true
-        fi
-        rm -rf "$source_dir"
+    # Ensure target directory exists
+    if [ ! -d "$target_dir" ]; then
+        mkdir -p "$target_dir"
+        log "  Created ${target_dir}"
     fi
     
+    # If source exists and is a directory (not symlink)
+    if [ -d "$source_dir" ] && [ ! -L "$source_dir" ]; then
+        log "  Found existing ${dir_name} directory in BepInEx"
+        
+        # Copy any default files from BepInEx to persistent storage
+        # but don't overwrite existing files (user's mods)
+        if [ "$(ls -A ${source_dir} 2>/dev/null)" ]; then
+            log "  Merging default ${dir_name} files to persistent storage..."
+            cp -rn "${source_dir}"/* "${target_dir}/" 2>/dev/null || true
+        fi
+        
+        # Remove the directory so we can create symlink
+        rm -rf "$source_dir"
+        log "  Removed original ${dir_name} directory"
+    elif [ -L "$source_dir" ]; then
+        # Already a symlink, check if it points to the right place
+        current_target=$(readlink "$source_dir")
+        if [ "$current_target" = "$target_dir" ]; then
+            log "  ✓ ${dir_name} symlink already correct"
+            return 0
+        else
+            log "  Updating ${dir_name} symlink target"
+            rm -f "$source_dir"
+        fi
+    fi
+    
+    # Create the symlink
     if [ ! -e "$source_dir" ]; then
         ln -sf "$target_dir" "$source_dir"
-        log "  ✓ Created ${dir_name} symlink"
-    else
-        log "  ✓ ${dir_name} symlink exists"
+        log "  ✓ Created ${dir_name} symlink: ${source_dir} -> ${target_dir}"
     fi
+    
+    # Show contents
+    local file_count=$(ls -A "${target_dir}" 2>/dev/null | wc -l)
+    log "  ${dir_name} contains ${file_count} items"
 }
 
-setup_symlink "plugins"
-setup_symlink "patchers"
-setup_symlink "config"
+setup_bepinex_directory "plugins"
+setup_bepinex_directory "patchers"
+setup_bepinex_directory "config"
 
 log "Verifying symlinks..."
 ls -la "${BEPINEX_DIR}/" | grep -E "plugins|patchers|config"
+
+log "Persistent storage contents:"
+log "  plugins:  $(ls -A ${USERFILES_BEPINEX}/plugins/ 2>/dev/null | wc -l) files"
+log "  patchers: $(ls -A ${USERFILES_BEPINEX}/patchers/ 2>/dev/null | wc -l) files"
+log "  config:   $(ls -A ${USERFILES_BEPINEX}/config/ 2>/dev/null | wc -l) files"
 
 log "✓ BepInEx persistence configured"
 log "======================================"
