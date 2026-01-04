@@ -150,9 +150,14 @@ fi
 # Ensure userfiles parent directory exists
 mkdir -p "${USERFILES_BEPINEX}"
 
-# Set permissions so host user can manage files
-# Using 777 for simplicity - files are writable by all
-chmod -R 777 "${USERFILES_BEPINEX}" 2>/dev/null || true
+# Set ownership to match host user (if PUID/PGID are set)
+if [ -n "${PUID}" ] && [ -n "${PGID}" ]; then
+    chown -R "${PUID}:${PGID}" "${USERFILES_BEPINEX}" 2>/dev/null || true
+    log "  Set ownership to ${PUID}:${PGID}"
+fi
+
+# Make sure directories are writable
+chmod -R 755 "${USERFILES_BEPINEX}" 2>/dev/null || true
 
 # Function to setup symlink with bidirectional sync
 setup_bepinex_directory() {
@@ -165,7 +170,11 @@ setup_bepinex_directory() {
     # Ensure target directory exists
     if [ ! -d "$target_dir" ]; then
         mkdir -p "$target_dir"
-        chmod 777 "$target_dir"
+        # Set ownership and permissions
+        if [ -n "${PUID}" ] && [ -n "${PGID}" ]; then
+            chown "${PUID}:${PGID}" "$target_dir"
+        fi
+        chmod 755 "$target_dir"
         log "  Created ${target_dir}"
     fi
     
@@ -217,6 +226,12 @@ log "Persistent storage contents:"
 log "  plugins:  $(ls -A ${USERFILES_BEPINEX}/plugins/ 2>/dev/null | wc -l) files"
 log "  patchers: $(ls -A ${USERFILES_BEPINEX}/patchers/ 2>/dev/null | wc -l) files"
 log "  config:   $(ls -A ${USERFILES_BEPINEX}/config/ 2>/dev/null | wc -l) files"
+
+# Fix ownership one final time for all userfiles
+if [ -n "${PUID}" ] && [ -n "${PGID}" ]; then
+    log "Setting ownership of /userfiles/ to ${PUID}:${PGID}..."
+    chown -R "${PUID}:${PGID}" /userfiles/ 2>/dev/null || true
+fi
 
 log "✓ BepInEx persistence configured"
 log "======================================"

@@ -24,6 +24,8 @@ services:
       - BACKUPS_MAX_AGE=3
       - MOD_LOADER=BepInEx
       - TZ=America/New_York
+      - PUID=1000  # Your user ID
+      - PGID=1000  # Your group ID
       # - SERVER_ARGS=-crossplay  # Uncomment for crossplay support
     restart: unless-stopped
     stop_grace_period: 2m
