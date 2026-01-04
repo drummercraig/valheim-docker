@@ -1,180 +1,141 @@
 #!/bin/bash
-set -e
-
 # BepInEx installer for Valheim via Thunderstore API
 # Handles installation and configuration of BepInEx mod loader
 
+# Don't exit on error - we want to show clear messages
+set +e
+
 VALHEIM_DIR="/opt/valheim"
-BEPINEX_ZIP="/tmp/bepinex.zip"
-THUNDERSTORE_API="https://thunderstore.io/api/v1/package"
+BEPINEX_DL_DIR="/tmp/bepinex"
+INSTALLED_VERSION_FILE="${VALHEIM_DIR}/.bepinex_version"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
 }
 
-get_latest_bepinex() {
-    log "Fetching latest BepInEx version from Thunderstore..."
-    
-    # Get BepInEx package info from Thunderstore
-    local package_data=$(curl -s -f "${THUNDERSTORE_API}/denikson/BepInExPack_Valheim/" 2>&1)
-    
-    if [ $? -ne 0 ]; then
-        log "ERROR: Failed to fetch package data from Thunderstore"
-        log "Response: $package_data"
-        return 1
-    fi
-    
-    # Extract latest version download URL using multiple methods
-    local download_url=$(echo "$package_data" | grep -oP '"download_url"\s*:\s*"\K[^"]+' | head -1)
-    
-    if [ -z "$download_url" ]; then
-        # Try alternative parsing
-        download_url=$(echo "$package_data" | sed -n 's/.*"download_url"[^"]*"\([^"]*\)".*/\1/p' | head -1)
-    fi
-    
-    local version=$(echo "$package_data" | grep -oP '"version_number"\s*:\s*"\K[^"]+' | head -1)
-    
-    if [ -z "$version" ]; then
-        version=$(echo "$package_data" | sed -n 's/.*"version_number"[^"]*"\([^"]*\)".*/\1/p' | head -1)
-    fi
-    
-    if [ -z "$download_url" ]; then
-        log "ERROR: Could not parse download URL from Thunderstore API response"
-        log "API Response (first 500 chars): ${package_data:0:500}"
-        return 1
-    fi
-    
-    log "Found BepInEx version: ${version}"
-    log "Download URL: ${download_url}"
-    
-    echo "$download_url"
-}
-
 install_bepinex() {
-    log "=========================================="
-    log "Installing BepInEx from Thunderstore"
-    log "=========================================="
+    log "======================================"
+    log "BepInEx Installation"
+    log "======================================"
     
-    # Get download URL
-    local download_url=$(get_latest_bepinex)
+    mkdir -p "${BEPINEX_DL_DIR}"
     
-    if [ -z "$download_url" ]; then
-        log "ERROR: Failed to get download URL"
+    # Fetch latest version from Thunderstore API
+    log "Fetching BepInEx version info from Thunderstore..."
+    API_RESPONSE=$(curl -sfSL -H "accept: application/json" "https://thunderstore.io/api/experimental/package/denikson/BepInExPack_Valheim/" 2>/dev/null)
+    
+    if [ -z "$API_RESPONSE" ]; then
+        log "ERROR: Could not connect to Thunderstore API"
+        log "BepInEx installation skipped - server will start without mods"
+        log "Check network connectivity: docker exec valheim-server curl -I https://thunderstore.io"
         return 1
     fi
     
-    # Download BepInEx
-    log "Downloading BepInEx..."
-    if ! wget --progress=bar:force -O "$BEPINEX_ZIP" "$download_url" 2>&1; then
-        log "ERROR: Failed to download BepInEx"
+    LATEST_VERSION=$(echo "$API_RESPONSE" | grep -o '"version_number":"[^"]*"' | head -1 | cut -d'"' -f4)
+    DOWNLOAD_URL=$(echo "$API_RESPONSE" | grep -o '"download_url":"[^"]*"' | head -1 | cut -d'"' -f4)
+    
+    if [ -z "$DOWNLOAD_URL" ] || [ -z "$LATEST_VERSION" ]; then
+        log "ERROR: Could not parse BepInEx version info from API response"
+        log "API Response preview: ${API_RESPONSE:0:200}"
+        log "BepInEx installation skipped - server will start without mods"
         return 1
     fi
     
-    if [ ! -f "$BEPINEX_ZIP" ]; then
-        log "ERROR: Download file not found: $BEPINEX_ZIP"
-        return 1
-    fi
+    log "Latest BepInEx version: ${LATEST_VERSION}"
+    log "Download URL: ${DOWNLOAD_URL}"
     
-    local file_size=$(stat -c%s "$BEPINEX_ZIP" 2>/dev/null || stat -f%z "$BEPINEX_ZIP" 2>/dev/null)
-    log "Downloaded file size: ${file_size} bytes"
-    
-    if [ "$file_size" -lt 1000 ]; then
-        log "ERROR: Downloaded file is too small, probably not valid"
-        return 1
-    fi
-    
-    # Extract to temporary directory first
-    local temp_dir="/tmp/bepinex_extract"
-    rm -rf "$temp_dir"
-    mkdir -p "$temp_dir"
-    
-    log "Extracting BepInEx..."
-    if ! unzip -o "$BEPINEX_ZIP" -d "$temp_dir" 2>&1; then
-        log "ERROR: Failed to extract BepInEx zip file"
-        return 1
-    fi
-    
-    # Debug: Show extracted structure
-    log "Extracted directory structure:"
-    find "$temp_dir" -maxdepth 3 -type d | head -20
-    
-    # Thunderstore packages are nested - find the actual BepInEx files
-    # Try multiple possible locations
-    local bepinex_pack_dir=""
-    
-    # Method 1: Look for BepInExPack directory
-    bepinex_pack_dir=$(find "$temp_dir" -type d -name "BepInExPack" | head -1)
-    
-    # Method 2: Look for directory containing BepInEx subdirectory
-    if [ -z "$bepinex_pack_dir" ]; then
-        local bepinex_subdir=$(find "$temp_dir" -type d -name "BepInEx" | head -1)
-        if [ -n "$bepinex_subdir" ]; then
-            bepinex_pack_dir=$(dirname "$bepinex_subdir")
+    # Check if update needed
+    NEEDS_INSTALL=false
+    if [ ! -f "${VALHEIM_DIR}/BepInEx/core/BepInEx.Preloader.dll" ]; then
+        log "BepInEx not found, installing..."
+        NEEDS_INSTALL=true
+    elif [ -f "$INSTALLED_VERSION_FILE" ]; then
+        INSTALLED_VERSION=$(cat "$INSTALLED_VERSION_FILE")
+        if [ "$INSTALLED_VERSION" != "$LATEST_VERSION" ]; then
+            log "BepInEx update available: ${INSTALLED_VERSION} -> ${LATEST_VERSION}"
+            NEEDS_INSTALL=true
+        else
+            log "BepInEx ${LATEST_VERSION} already installed"
         fi
-    fi
-    
-    # Method 3: Just use temp_dir root if it has the right files
-    if [ -z "$bepinex_pack_dir" ] && [ -d "$temp_dir/BepInEx" ]; then
-        bepinex_pack_dir="$temp_dir"
-    fi
-    
-    if [ -z "$bepinex_pack_dir" ]; then
-        log "ERROR: Could not find BepInEx files in download"
-        log "Directory contents:"
-        ls -la "$temp_dir"
-        return 1
-    fi
-    
-    log "Found BepInEx files at: ${bepinex_pack_dir}"
-    log "Contents:"
-    ls -la "$bepinex_pack_dir"
-    
-    # Copy BepInEx files to Valheim directory
-    log "Installing BepInEx to ${VALHEIM_DIR}..."
-    
-    # Copy BepInEx directory
-    if [ -d "${bepinex_pack_dir}/BepInEx" ]; then
-        log "Copying BepInEx directory..."
-        cp -r "${bepinex_pack_dir}/BepInEx" "$VALHEIM_DIR/"
     else
-        log "ERROR: BepInEx directory not found in ${bepinex_pack_dir}"
-        return 1
+        log "Version file missing, reinstalling..."
+        NEEDS_INSTALL=true
     fi
     
-    # Copy doorstop files
-    if [ -d "${bepinex_pack_dir}/doorstop_libs" ]; then
-        log "Copying doorstop_libs..."
-        cp -r "${bepinex_pack_dir}/doorstop_libs" "$VALHEIM_DIR/"
-    fi
-    
-    # Copy start scripts - try multiple names
-    for script in start_game_bepinex.sh start_server_bepinex.sh; do
-        if [ -f "${bepinex_pack_dir}/${script}" ]; then
-            log "Copying ${script}..."
-            cp "${bepinex_pack_dir}/${script}" "${VALHEIM_DIR}/"
-            chmod +x "${VALHEIM_DIR}/${script}"
+    if [ "$NEEDS_INSTALL" = true ]; then
+        log "Installing BepInEx ${LATEST_VERSION}..."
+        cd "${BEPINEX_DL_DIR}"
+        
+        if ! curl -sL -o "BepInEx.zip" "${DOWNLOAD_URL}"; then
+            log "ERROR: Failed to download BepInEx from ${DOWNLOAD_URL}"
+            log "BepInEx installation skipped - server will start without mods"
+            rm -rf "${BEPINEX_DL_DIR}"
+            return 1
         fi
-    done
-    
-    # Copy doorstop config
-    if [ -f "${bepinex_pack_dir}/doorstop_config.ini" ]; then
-        log "Copying doorstop_config.ini..."
-        cp "${bepinex_pack_dir}/doorstop_config.ini" "${VALHEIM_DIR}/"
+        
+        log "Download complete, extracting..."
+        if ! unzip -q "BepInEx.zip" -d extracted; then
+            log "ERROR: Failed to extract BepInEx archive"
+            log "BepInEx installation skipped - server will start without mods"
+            rm -rf "${BEPINEX_DL_DIR}"
+            return 1
+        fi
+        
+        log "Extraction complete, checking structure..."
+        log "Extracted contents:"
+        ls -la extracted/
+        
+        # Find the BepInEx pack directory
+        BEPINEX_SOURCE=""
+        if [ -d "extracted/BepInExPack_Valheim" ]; then
+            BEPINEX_SOURCE="extracted/BepInExPack_Valheim"
+            log "Found BepInExPack_Valheim directory"
+        elif [ -d "extracted/BepInExPack" ]; then
+            BEPINEX_SOURCE="extracted/BepInExPack"
+            log "Found BepInExPack directory"
+        else
+            # Search for any directory containing BepInEx
+            BEPINEX_SOURCE=$(find extracted -type d -name "*BepInEx*" | head -1)
+            if [ -n "$BEPINEX_SOURCE" ]; then
+                log "Found BepInEx directory at: ${BEPINEX_SOURCE}"
+            fi
+        fi
+        
+        if [ -z "$BEPINEX_SOURCE" ] || [ ! -d "$BEPINEX_SOURCE" ]; then
+            log "ERROR: Could not find BepInEx files in archive"
+            log "Archive structure:"
+            find extracted -maxdepth 2 -type d
+            log "BepInEx installation skipped - server will start without mods"
+            rm -rf "${BEPINEX_DL_DIR}"
+            return 1
+        fi
+        
+        log "Copying BepInEx files from ${BEPINEX_SOURCE} to ${BEPINEX_INSTALL_PATH}..."
+        log "Source directory contents:"
+        ls -la "${BEPINEX_SOURCE}/"
+        
+        cp -rf "${BEPINEX_SOURCE}"/* "${BEPINEX_INSTALL_PATH}/"
+        
+        # Set executable permissions
+        log "Setting permissions..."
+        chmod +x "${BEPINEX_INSTALL_PATH}/start_server_bepinex.sh" 2>/dev/null || true
+        chmod +x "${BEPINEX_INSTALL_PATH}/start_game_bepinex.sh" 2>/dev/null || true
+        find "${BEPINEX_INSTALL_PATH}/doorstop_libs" -type f -name "*.so" -exec chmod +x {} \; 2>/dev/null || true
+        
+        # Save installed version
+        echo "$LATEST_VERSION" > "$INSTALLED_VERSION_FILE"
+        
+        # Cleanup
+        rm -rf "${BEPINEX_DL_DIR}"
+        
+        log "✓ BepInEx ${LATEST_VERSION} installed successfully"
+        log "Installed files:"
+        ls -la "${VALHEIM_DIR}/BepInEx/" 2>/dev/null || log "  WARNING: BepInEx directory not found!"
+    else
+        log "✓ BepInEx ${LATEST_VERSION} up to date"
     fi
     
-    # Set permissions for doorstop
-    if [ -f "${VALHEIM_DIR}/doorstop_libs/libdoorstop_x64.so" ]; then
-        chmod +x "${VALHEIM_DIR}/doorstop_libs/libdoorstop_x64.so"
-        log "Set executable permission for libdoorstop_x64.so"
-    fi
-    
-    # Clean up
-    rm -rf "$temp_dir" "$BEPINEX_ZIP"
-    
-    log "BepInEx installation complete"
-    log "Installed files:"
-    ls -la "${VALHEIM_DIR}/BepInEx" 2>/dev/null || log "BepInEx directory not found!"
-    
+    log "======================================"
     return 0
 }
 
@@ -212,7 +173,7 @@ setup_bepinex_symlinks() {
     
     if [ ! -e "${BEPINEX_DIR}/plugins" ]; then
         ln -sf "${USERFILES_BEPINEX}/plugins" "${BEPINEX_DIR}/plugins"
-        log "Created plugins symlink"
+        log "✓ Created plugins symlink"
     fi
     
     # Handle patchers directory
@@ -229,7 +190,7 @@ setup_bepinex_symlinks() {
     
     if [ ! -e "${BEPINEX_DIR}/patchers" ]; then
         ln -sf "${USERFILES_BEPINEX}/patchers" "${BEPINEX_DIR}/patchers"
-        log "Created patchers symlink"
+        log "✓ Created patchers symlink"
     fi
     
     # Handle config directory
@@ -246,27 +207,25 @@ setup_bepinex_symlinks() {
     
     if [ ! -e "${BEPINEX_DIR}/config" ]; then
         ln -sf "${USERFILES_BEPINEX}/config" "${BEPINEX_DIR}/config"
-        log "Created config symlink"
+        log "✓ Created config symlink"
     fi
     
     # Verify symlinks
     log "Verifying BepInEx symlinks:"
-    ls -la "${BEPINEX_DIR}/" | grep -E "plugins|patchers|config" || log "No symlinks found!"
+    ls -la "${BEPINEX_DIR}/" | grep -E "plugins|patchers|config" || log "WARNING: No symlinks found!"
     
     log "Symlink targets:"
     log "  plugins:  $(readlink -f ${BEPINEX_DIR}/plugins 2>/dev/null || echo 'NOT A SYMLINK')"
     log "  patchers: $(readlink -f ${BEPINEX_DIR}/patchers 2>/dev/null || echo 'NOT A SYMLINK')"
     log "  config:   $(readlink -f ${BEPINEX_DIR}/config 2>/dev/null || echo 'NOT A SYMLINK')"
     
-    log "Contents of persistent storage:"
-    log "Plugins:"
-    ls -la "${USERFILES_BEPINEX}/plugins/" 2>/dev/null || log "  (empty)"
-    log "Patchers:"
-    ls -la "${USERFILES_BEPINEX}/patchers/" 2>/dev/null || log "  (empty)"
-    log "Config:"
-    ls -la "${USERFILES_BEPINEX}/config/" 2>/dev/null || log "  (empty)"
+    log "Persistent storage verification:"
+    log "Plugins ($(ls -A ${USERFILES_BEPINEX}/plugins/ 2>/dev/null | wc -l) files)"
+    log "Patchers ($(ls -A ${USERFILES_BEPINEX}/patchers/ 2>/dev/null | wc -l) files)"
+    log "Config ($(ls -A ${USERFILES_BEPINEX}/config/ 2>/dev/null | wc -l) files)"
     
-    log "BepInEx persistence setup complete"
+    log "✓ BepInEx persistence setup complete"
+    log "=========================================="
     return 0
 }
 
@@ -280,12 +239,15 @@ remove_bepinex() {
     # Remove symlinks
     if [ -L "${BEPINEX_DIR}/plugins" ]; then
         rm -f "${BEPINEX_DIR}/plugins"
+        log "Removed plugins symlink"
     fi
     if [ -L "${BEPINEX_DIR}/patchers" ]; then
         rm -f "${BEPINEX_DIR}/patchers"
+        log "Removed patchers symlink"
     fi
     if [ -L "${BEPINEX_DIR}/config" ]; then
         rm -f "${BEPINEX_DIR}/config"
+        log "Removed config symlink"
     fi
     
     # Remove BepInEx directory and files
@@ -295,8 +257,11 @@ remove_bepinex() {
     rm -f "${VALHEIM_DIR}/start_game_bepinex.sh"
     rm -f "${VALHEIM_DIR}/start_server_bepinex.sh"
     rm -f "${VALHEIM_DIR}/.doorstop_version"
+    rm -f "${INSTALLED_VERSION_FILE}"
     
-    log "BepInEx removed"
+    log "✓ BepInEx removed"
+    log "Note: Mod files in /userfiles/bepinex/ are preserved"
+    log "=========================================="
 }
 
 # Main logic
@@ -311,37 +276,35 @@ case "${MOD_LOADER:-Vanilla}" in
         
         # Wait for Valheim server to be installed
         log "Waiting for Valheim server installation..."
+        WAIT_COUNT=0
         while [ ! -f /opt/valheim/valheim_server.x86_64 ]; do
             sleep 5
+            WAIT_COUNT=$((WAIT_COUNT + 5))
+            if [ $WAIT_COUNT -ge 300 ]; then
+                log "ERROR: Timeout waiting for Valheim server installation"
+                exit 1
+            fi
         done
-        log "Valheim server detected"
+        log "✓ Valheim server detected"
         
-        # Check if BepInEx is already installed
-        if [ ! -d "${VALHEIM_DIR}/BepInEx" ]; then
-            log "BepInEx not found, installing..."
-            if install_bepinex; then
-                log "BepInEx installation successful"
+        # Install or update BepInEx
+        if install_bepinex; then
+            log "BepInEx installation completed successfully"
+            
+            # Setup symlinks for persistence
+            if setup_bepinex_symlinks; then
+                log "✓ BepInEx fully configured and ready"
             else
-                log "ERROR: BepInEx installation failed!"
-                log "Server will start without mods"
+                log "WARNING: Symlink setup encountered issues"
             fi
         else
-            log "BepInEx already installed"
+            log "WARNING: BepInEx installation failed"
+            log "Server will start in vanilla mode"
         fi
-        
-        # Always setup symlinks (in case they were removed)
-        if [ -d "${VALHEIM_DIR}/BepInEx" ]; then
-            if setup_bepinex_symlinks; then
-                log "BepInEx symlinks configured"
-            else
-                log "WARNING: Symlink setup failed"
-            fi
-        fi
-        
-        log "BepInEx is ready"
         ;;
     ValheimPlus)
         log "ValheimPlus support not yet implemented"
+        log "Server will start in vanilla mode"
         # TODO: Implement ValheimPlus installation
         ;;
     Vanilla)
@@ -359,8 +322,15 @@ case "${MOD_LOADER:-Vanilla}" in
 esac
 
 log "BepInEx installer entering monitoring mode"
+log "This process will check for updates periodically"
 
-# Keep the process running
+# Keep the process running and check for updates every hour
 while true; do
     sleep 3600
+    
+    # Re-check if BepInEx needs updating (only if MOD_LOADER is still BepInEx)
+    if [ "${MOD_LOADER:-Vanilla}" = "BepInEx" ] && [ -f "${VALHEIM_DIR}/valheim_server.x86_64" ]; then
+        log "Checking for BepInEx updates..."
+        install_bepinex
+    fi
 done

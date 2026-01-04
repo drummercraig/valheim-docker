@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     BACKUPS_INTERVAL=3600 \
     BACKUPS_DIRECTORY=/userfiles/backups \
     BACKUPS_MAX_AGE=3 \
-    MOD_LOADER=Vanilla \
+    MOD_LOADER=BepInEx \
     TZ=Etc/UTC
 
 # Install dependencies
@@ -21,6 +21,7 @@ RUN apt-get update && \
     ca-certificates \
     curl \
     dumb-init \
+    iputils-ping \
     lib32gcc-s1 \
     libsdl2-2.0-0 \
     rsync \
