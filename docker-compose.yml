@@ -1,7 +1,7 @@
 services:
   valheim-server:
     build: .
-    image: valheim-server:latest
+    image: drummercraig/valheim-server:latest
     container_name: valheim-server
     cap_add:
       - sys_nice
