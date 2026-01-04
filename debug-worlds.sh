@@ -42,12 +42,12 @@ else
 fi
 echo ""
 
-echo "3. Checking /config/worlds_local (PERSISTENT storage)"
+echo "3. Checking /userfiles/worlds_local (PERSISTENT storage)"
 echo "--------------------------------------"
-if [ -d /config/worlds_local ]; then
+if [ -d /userfiles/worlds_local ]; then
     echo "✓ Directory exists"
     echo "  Contents:"
-    ls -lah /config/worlds_local/ 2>/dev/null || echo "  (empty)"
+    ls -lah /userfiles/worlds_local/ 2>/dev/null || echo "  (empty)"
 else
     echo "✗ Directory does NOT exist"
 fi
@@ -61,8 +61,8 @@ echo ""
 echo "In /opt/valheim:"
 find /opt/valheim -maxdepth 2 -name "*.db" -o -name "*.fwl" 2>/dev/null || echo "  (none found)"
 echo ""
-echo "In /config:"
-find /config -name "*.db" -o -name "*.fwl" 2>/dev/null || echo "  (none found)"
+echo "In /userfiles:"
+find /userfiles -name "*.db" -o -name "*.fwl" 2>/dev/null || echo "  (none found)"
 echo ""
 
 echo "5. Server configuration"
@@ -83,5 +83,5 @@ tail -30 /var/log/supervisor/valheim-server-stdout*.log 2>/dev/null || echo "  (
 echo ""
 
 echo "=========================================="
-echo "EXPECTED: Unity path should be symlink to /config/worlds_local"
+echo "EXPECTED: Unity path should be symlink to /userfiles/worlds_local"
 echo "=========================================="

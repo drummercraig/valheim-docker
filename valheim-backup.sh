@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-WORLDS_DIR="/config/worlds_local"
-BACKUP_DIR="${BACKUPS_DIRECTORY:-/config/backups}"
+WORLDS_DIR="/userfiles/worlds_local"
+BACKUP_DIR="${BACKUPS_DIRECTORY:-/userfiles/backups}"
 MAX_AGE="${BACKUPS_MAX_AGE:-3}"
 
 # Create backup directory if it doesn't exist
@@ -34,7 +34,7 @@ create_backup() {
     
     echo "Creating backup: $BACKUP_FILE"
     
-    cd /config
+    cd /userfiles
     zip -r "$BACKUP_FILE" worlds_local/ -q
     
     if [ $? -eq 0 ]; then

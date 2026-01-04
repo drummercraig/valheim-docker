@@ -5,7 +5,7 @@ set -e
 # This is a safety mechanism in case the symlink fails
 
 VALHEIM_WORLDS="/opt/valheim/worlds_local"
-CONFIG_WORLDS="/config/worlds_local"
+CONFIG_WORLDS="/userfiles/worlds_local"
 SYNC_INTERVAL=30
 
 echo "=== Starting world sync monitor ==="
