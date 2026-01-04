@@ -1,19 +1,7 @@
 FROM ubuntu:24.04
 
 # Set environment variables
-ENV DEBIAN_FRONTEND=noninteractive \
-    SERVER_NAME="My Valheim Server" \
-    SERVER_PORT=2456 \
-    WORLD_NAME="Dedicated" \
-    SERVER_PASS="secret" \
-    SERVER_PUBLIC=true \
-    UPDATE_INTERVAL=900 \
-    BACKUPS_ENABLED=true \
-    BACKUPS_INTERVAL=3600 \
-    BACKUPS_DIRECTORY=/userfiles/backups \
-    BACKUPS_MAX_AGE=3 \
-    MOD_LOADER=BepInEx \
-    TZ=Etc/UTC
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
 RUN apt-get update && \
@@ -77,10 +65,10 @@ EXPOSE 2457/udp
 EXPOSE 2458/udp
 
 # Volumes
-VOLUME ["/userfiles", "/opt/valheim"]
+VOLUME [ "/userfiles", "/opt/valheim" ]
 
 # Use init to properly handle signals
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+ENTRYPOINT [ "/usr/bin/dumb-init", "--" ]
 
 # Start supervisor
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+CMD [ "/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf" ]
