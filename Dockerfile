@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     BACKUPS_INTERVAL=3600 \
     BACKUPS_DIRECTORY=/userfiles/backups \
     BACKUPS_MAX_AGE=3 \
-    MOD_LOADER=BepInEx \
+    MOD_LOADER=Vanilla \
     TZ=Etc/UTC
 
 # Install dependencies
@@ -52,6 +52,7 @@ COPY valheim-backup.sh /usr/local/bin/valheim-backup
 COPY valheim-sync.sh /usr/local/bin/valheim-sync
 COPY bepinex-installer.sh /usr/local/bin/bepinex-installer
 COPY debug-worlds.sh /usr/local/bin/debug-worlds
+COPY debug-bepinex.sh /usr/local/bin/debug-bepinex
 COPY force-save.sh /usr/local/bin/force-save
 COPY pre-stop-hook.sh /usr/local/bin/pre-stop-hook
 COPY check-world-status.sh /usr/local/bin/check-world-status
@@ -64,6 +65,7 @@ RUN chmod +x /usr/local/bin/valheim-server \
     /usr/local/bin/valheim-sync \
     /usr/local/bin/bepinex-installer \
     /usr/local/bin/debug-worlds \
+    /usr/local/bin/debug-bepinex \
     /usr/local/bin/force-save \
     /usr/local/bin/pre-stop-hook \
     /usr/local/bin/check-world-status
