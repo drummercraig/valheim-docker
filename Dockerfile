@@ -34,6 +34,9 @@ RUN mkdir -p /opt/valheim \
     /opt/steamcmd \
     /userfiles/worlds_local \
     /userfiles/backups \
+    /userfiles/bepinex/plugins \
+    /userfiles/bepinex/patchers \
+    /userfiles/bepinex/config \
     /var/log/supervisor
 
 # Download and install SteamCMD
