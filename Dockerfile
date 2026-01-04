@@ -34,6 +34,7 @@ RUN apt-get update && \
 
 # Create directories
 RUN mkdir -p /opt/valheim \
+    /opt/valheim/BepInEx \
     /opt/steamcmd \
     /userfiles/worlds_local \
     /userfiles/backups \
