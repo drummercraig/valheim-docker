@@ -12,6 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     BACKUPS_INTERVAL=3600 \
     BACKUPS_DIRECTORY=/userfiles/backups \
     BACKUPS_MAX_AGE=3 \
+    MOD_LOADER=BepInEx \
     TZ=Etc/UTC
 
 # Install dependencies
@@ -26,7 +27,8 @@ RUN apt-get update && \
     supervisor \
     tzdata \
     zip \
-    unzip && \
+    unzip \
+    wget && \
     rm -rf /var/lib/apt/lists/*
 
 # Create directories
@@ -48,6 +50,7 @@ COPY valheim-server.sh /usr/local/bin/valheim-server
 COPY valheim-updater.sh /usr/local/bin/valheim-updater
 COPY valheim-backup.sh /usr/local/bin/valheim-backup
 COPY valheim-sync.sh /usr/local/bin/valheim-sync
+COPY bepinex-installer.sh /usr/local/bin/bepinex-installer
 COPY debug-worlds.sh /usr/local/bin/debug-worlds
 COPY force-save.sh /usr/local/bin/force-save
 COPY pre-stop-hook.sh /usr/local/bin/pre-stop-hook
@@ -59,6 +62,7 @@ RUN chmod +x /usr/local/bin/valheim-server \
     /usr/local/bin/valheim-updater \
     /usr/local/bin/valheim-backup \
     /usr/local/bin/valheim-sync \
+    /usr/local/bin/bepinex-installer \
     /usr/local/bin/debug-worlds \
     /usr/local/bin/force-save \
     /usr/local/bin/pre-stop-hook \
@@ -67,7 +71,7 @@ RUN chmod +x /usr/local/bin/valheim-server \
 # Expose ports
 # Game port (UDP)
 EXPOSE 2456/udp
-# Query port (UDP) 
+# Query port (UDP)
 EXPOSE 2457/udp
 # Crossplay port (UDP, if enabled)
 EXPOSE 2458/udp

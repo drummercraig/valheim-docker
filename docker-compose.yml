@@ -22,6 +22,7 @@ services:
       - BACKUPS_INTERVAL=3600
       - BACKUPS_DIRECTORY=/userfiles/backups
       - BACKUPS_MAX_AGE=3
+      - MOD_LOADER=BepInEx
       - TZ=America/New_York
       # - SERVER_ARGS=-crossplay  # Uncomment for crossplay support
     restart: unless-stopped
