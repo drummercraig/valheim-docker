@@ -6,32 +6,19 @@ services:
     cap_add:
       - sys_nice
     ports:
-      - "2456-2457:2456-2457/udp"
-      - "2458:2458/udp"  # Crossplay port
+      - "${GAME_PORT:-2456}:${GAME_PORT:-2456}/udp"
+      - "${QUERY_PORT:-2457}:${QUERY_PORT:-2457}/udp"
+      - "${CROSSPLAY_PORT:-2458}:${CROSSPLAY_PORT:-2458}/udp"
     volumes:
-      - ./userfiles:/userfiles
-      - ./serverfiles:/opt/valheim
-    environment:
-      - SERVER_NAME="My Valheim Server"
-      - SERVER_PORT=2456
-      - WORLD_NAME=Dedicated
-      - SERVER_PASS=secret123
-      - SERVER_PUBLIC=true
-      - UPDATE_INTERVAL=900
-      - BACKUPS_ENABLED=true
-      - BACKUPS_INTERVAL=3600
-      - BACKUPS_DIRECTORY=/userfiles/backups
-      - BACKUPS_MAX_AGE=3
-      - MOD_LOADER=BepInEx
-      - TZ=America/New_York
-      - PUID=1000  # Your user ID
-      - PGID=1000  # Your group ID
-      # - SERVER_ARGS=-crossplay  # Uncomment for crossplay support
+      - ${USERFILES_PATH:-./userfiles}:/userfiles
+      - ${SERVERFILES_PATH:-./serverfiles}:/opt/valheim
+    env_file:
+      - .env
     restart: unless-stopped
     stop_grace_period: 2m
     deploy:
       resources:
         limits:
-          memory: 8G
+          memory: ${MEMORY_LIMIT:-8G}
         reservations:
-          memory: 4G
+          memory: ${MEMORY_RESERVATION:-2G}
