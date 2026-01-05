@@ -213,6 +213,11 @@ if [ "$SETKEY_NOMAP" = "true" ]; then
   SERVER_CMD="$SERVER_CMD -setkey nomap"
 fi
 
+if [ "$NOPORTALS" = "true" ]; then
+  echo "Disabling all portals"
+  SERVER_CMD="$SERVER_CMD -noportals"
+fi
+
 # =============================================================================
 # Additional Server Arguments
 # =============================================================================

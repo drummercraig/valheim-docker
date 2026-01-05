@@ -1,0 +1,32 @@
+# =============================================================================
+# Valheim Thunderstore Mod Links
+# =============================================================================
+# Add one mod download URL per line
+# Lines starting with # are comments and will be ignored
+# Empty lines are also ignored
+#
+# To find mod download URLs:
+# 1. Go to https://thunderstore.io/c/valheim/
+# 2. Find the mod you want
+# 3. Click on the mod page
+# 4. Click "Manual Download" button
+# 5. Copy the direct download URL (it will look like the examples below)
+# =============================================================================
+
+# Example mods (uncomment to use):
+
+# Server Dev Commands - Essential for server administration
+# https://thunderstore.io/package/download/JereKuusela/Server_devcommands/1.102.0/
+
+# Jotunn - Modding library required by many mods
+# https://thunderstore.io/package/download/ValheimModding/Jotunn/2.20.2/
+
+# BepInEx Pack - Core modding framework (usually needed)
+# https://thunderstore.io/package/download/denikson/BepInExPack_Valheim/5.4.2202/
+
+# Valheim Plus - Popular gameplay enhancement mod
+# https://thunderstore.io/package/download/ValheimPlus/ValheimPlus/9.9.16/
+
+# =============================================================================
+# Add your mod URLs below this line
+# =============================================================================

@@ -98,6 +98,46 @@ WORLD_SIZE=10000
 
 **Note**: World seed and size can only be set when creating a NEW world. They have no effect on existing worlds.
 
+### Installing Mods from Thunderstore
+
+1. **Create a modlinks.txt file** in your project directory with mod download URLs:
+   ```
+   https://thunderstore.io/package/download/JereKuusela/Server_devcommands/1.102.0/
+   https://thunderstore.io/package/download/ValheimModding/Jotunn/2.20.2/
+   ```
+
+2. **Make the install script executable:**
+   ```bash
+   chmod +x install-mods.sh
+   ```
+
+3. **Run the mod installer:**
+   ```bash
+   ./install-mods.sh
+   ```
+
+4. **Enable BepInEx in your .env file:**
+   ```bash
+   BEPINEX_ENABLED=true
+   ```
+
+5. **Restart the server:**
+   ```bash
+   docker compose restart valheim-server
+   ```
+
+The script will automatically:
+- Download each mod from Thunderstore
+- Extract and organize files into the correct BepInEx directories
+- Handle various mod package structures
+- Copy DLL files to plugins, configs to config, patchers to patchers
+
+**To find mod URLs:**
+1. Go to [Thunderstore Valheim](https://thunderstore.io/c/valheim/)
+2. Find your desired mod
+3. Click "Manual Download" button
+4. Copy the download URL
+
 ### World Modifiers
 
 #### Using Presets
@@ -127,6 +167,7 @@ SETKEY_NOBUILDCOST=true      # No building material cost
 SETKEY_PLAYEREVENTS=true     # Individual player raid progression
 SETKEY_PASSIVEMOBS=true      # Enemies won't attack unless provoked
 SETKEY_NOMAP=true            # Disable map/minimap
+NOPORTALS=true               # Disable all portals
 ```
 
 ### Network Ports
@@ -257,6 +298,8 @@ The server requires these UDP ports to be open:
 ├── Dockerfile                  # Container build file
 ├── run-valheim-server.sh       # Docker run script
 ├── safe-stop.sh                # Safe shutdown script
+├── install-mods.sh             # Thunderstore mod installer
+├── modlinks.txt                # Mod download URLs (create this)
 ├── valheim-server.sh           # Main server script
 ├── valheim-updater.sh          # Auto-update script
 ├── valheim-backup.sh           # Backup script
@@ -268,7 +311,11 @@ The server requires these UDP ports to be open:
 ├── supervisord.conf            # Supervisor configuration
 ├── userfiles/                  # Persistent data (auto-created)
 │   ├── worlds_local/           # World saves
-│   └── backups/                # World backups
+│   ├── backups/                # World backups
+│   └── bepinex/                # BepInEx mod files
+│       ├── plugins/            # Mod plugins
+│       ├── patchers/           # Mod patchers
+│       └── config/             # Mod configs
 └── serverfiles/                # Server installation (auto-created)
 ```
 

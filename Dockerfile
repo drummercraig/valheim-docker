@@ -27,6 +27,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     SETKEY_PLAYEREVENTS=false \
     SETKEY_PASSIVEMOBS=false \
     SETKEY_NOMAP=false \
+    NOPORTALS=false \
     SERVER_ARGS="" \
     BEPINEX_ENABLED=false
 

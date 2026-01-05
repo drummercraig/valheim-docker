@@ -19,6 +19,6 @@ services:
     deploy:
       resources:
         limits:
-          memory: ${MEMORY_LIMIT:-8G}
+          memory: ${MEMORY_LIMIT:-6G}
         reservations:
           memory: ${MEMORY_RESERVATION:-2G}
