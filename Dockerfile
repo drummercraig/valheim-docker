@@ -66,6 +66,7 @@ COPY valheim-updater.sh /usr/local/bin/valheim-updater
 COPY valheim-backup.sh /usr/local/bin/valheim-backup
 COPY valheim-sync.sh /usr/local/bin/valheim-sync
 COPY debug-worlds.sh /usr/local/bin/debug-worlds
+COPY bepinex-installer.sh /usr/local/bin/debug-worlds
 COPY force-save.sh /usr/local/bin/force-save
 COPY pre-stop-hook.sh /usr/local/bin/pre-stop-hook
 COPY check-world-status.sh /usr/local/bin/check-world-status
