@@ -78,6 +78,7 @@ RUN chmod +x /usr/local/bin/valheim-server \
     /usr/local/bin/valheim-updater \
     /usr/local/bin/valheim-backup \
     /usr/local/bin/valheim-sync \
+    /usr/local/bin/bepinex-installer \
     /usr/local/bin/debug-worlds \
     /usr/local/bin/force-save \
     /usr/local/bin/pre-stop-hook \
