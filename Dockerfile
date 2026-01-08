@@ -29,7 +29,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     SETKEY_NOMAP=false \
     NOPORTALS=false \
     SERVER_ARGS="" \
-    BEPINEX_ENABLED=false
+    BEPINEX_ENABLED=false \
+    MOD_LOADER="BepInEx"
 
 # Install dependencies
 RUN apt-get update && \
